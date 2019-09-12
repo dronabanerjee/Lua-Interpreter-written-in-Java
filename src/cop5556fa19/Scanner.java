@@ -108,6 +108,12 @@ public class Scanner {
 		    	    	
 		    	    	}break;
 		    	    	
+		    	    	case ' ': {
+		    	    		
+		    	    		getChar();
+		    	    	
+		    	    	}break;
+		    	    	
 		    	    	case '*': {
 		    	    		
 		    	    		t = new Token(OP_TIMES, "*", pos, line);
@@ -466,13 +472,25 @@ public class Scanner {
 		      
 		      case IN_IDENT: 
 		      {
-		    	  	 sb = new StringBuilder();
-		    	  	 
-		    	  	 
-	                 sb.append((char)ch);
-	                 getChar();	    	  
+		    	  	  sb = new StringBuilder();
+		    	      while (Character.isJavaIdentifierPart(ch)) {
+		    	            sb.append((char)ch);
+		    	            getChar();
+		    	      }
+		    	      
+		    	      String s = sb.toString();
+		    	      
+		    	       if(keywords.containsKey(s)) 
+		    	       {
+		    	    	   t = new Token(keywords.get(s),sb.toString(),pos,line);
+		    	       }
+		    	       else
+		    	       {
+		    	    	   t = new Token(NAME,sb.toString(),pos,line);
+		    	       }
+    	  
 		    	  
-		      } break;
+		      }break;
 		      
 		      default:
 		      {

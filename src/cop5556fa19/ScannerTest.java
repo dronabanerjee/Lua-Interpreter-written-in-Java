@@ -140,5 +140,43 @@ class ScannerTest {
 		assertEquals("2",t.text);
 		
 	}
+	
+	@Test
+	void test6() throws Exception {
+		Reader r = new StringReader("if(a==b and c==d)");
+		Scanner s = new Scanner(r);
+		Token t;
+		show(t= s.getNext());
+		assertEquals(KW_if, t.kind);
+		assertEquals("if",t.text);
+		show(t= s.getNext());
+		assertEquals(LPAREN, t.kind);
+		assertEquals("(",t.text);
+		show(t= s.getNext());
+		assertEquals(NAME, t.kind);
+		assertEquals("a",t.text);
+		show(t= s.getNext());
+		assertEquals(REL_EQEQ, t.kind);
+		assertEquals("==",t.text);
+		show(t= s.getNext());
+		assertEquals(NAME, t.kind);
+		assertEquals("b",t.text);
+		show(t= s.getNext());
+		assertEquals(KW_and, t.kind);
+		assertEquals("and",t.text);
+		show(t= s.getNext());
+		assertEquals(NAME, t.kind);
+		assertEquals("c",t.text);
+		show(t= s.getNext());
+		assertEquals(REL_EQEQ, t.kind);
+		assertEquals("==",t.text);
+		show(t= s.getNext());
+		assertEquals(NAME, t.kind);
+		assertEquals("d",t.text);
+		show(t= s.getNext());
+		assertEquals(RPAREN, t.kind);
+		assertEquals(")",t.text);
+		
+	}
 
 }
