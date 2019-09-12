@@ -523,14 +523,75 @@ public class Scanner {
 		      {
 		    	  sb = new StringBuilder();
 		    	  sb.append('"');
+		    	  int flag =0;
 		    	  while((char)ch != '"')
 		    	  {
-		    		  sb.append((char)ch);
-  	                  getChar();
-  	                  if (ch == -1)
-  	                  {
-  	                	throw new LexicalException("String missing double quote!");
-  	                  }
+		    		  flag = 0;
+		    		  if (ch == '\\')
+		    		  {
+		    			  flag =1;
+		    			  getChar();
+		    		  }
+		    		  if (ch == 'n' && flag ==1)
+		    		  {
+		    			  sb.append((char)10);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 'a' && flag ==1)
+		    		  {
+		    			  sb.append((char)7);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 'b' && flag ==1)
+		    		  {
+		    			  sb.append((char)8);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 'f' && flag ==1)
+		    		  {
+		    			  sb.append((char)12);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 'r' && flag ==1)
+		    		  {
+		    			  sb.append((char)13);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 't' && flag ==1)
+		    		  {
+		    			  sb.append((char)9);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 'v' && flag ==1)
+		    		  {
+		    			  sb.append((char)11);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == '\\' && flag ==1)
+		    		  {
+		    			  sb.append((char)92);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == '"' && flag ==1)
+		    		  {
+		    			  sb.append((char)34);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == '\'' && flag ==1)
+		    		  {
+		    			  sb.append((char)39);
+	  	                  getChar();
+		    		  }
+		    		  
+		    		  if(flag == 0)
+		    		  {
+		    			  sb.append((char)ch);
+	  	                  getChar();
+	  	                  if (ch == -1)
+	  	                  {
+	  	                	throw new LexicalException("String missing double quote!");
+	  	                  }
+		    		  }
 		    	  }
 		    	  sb.append('"');
 		    	  t = new Token(STRINGLIT,sb.toString(),pos,line);
@@ -542,14 +603,75 @@ public class Scanner {
 		      {
 		    	  sb = new StringBuilder();
 		    	  sb.append("'");
+		    	  int flag = 0;
 		    	  while((char)ch != '\'')
 		    	  {
-		    		  sb.append((char)ch);
-  	                  getChar();
-  	                  if (ch == -1)
-  	                  {
-  	                	throw new LexicalException("String missing single quote!");
-  	                  }
+		    		  flag = 0;
+		    		  if (ch == '\\')
+		    		  {
+		    			  flag =1;
+		    			  getChar();
+		    		  }
+		    		  if (ch == 'n' && flag ==1)
+		    		  {
+		    			  sb.append((char)10);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 'a' && flag ==1)
+		    		  {
+		    			  sb.append((char)7);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 'b' && flag ==1)
+		    		  {
+		    			  sb.append((char)8);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 'f' && flag ==1)
+		    		  {
+		    			  sb.append((char)12);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 'r' && flag ==1)
+		    		  {
+		    			  sb.append((char)13);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 't' && flag ==1)
+		    		  {
+		    			  sb.append((char)9);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == 'v' && flag ==1)
+		    		  {
+		    			  sb.append((char)11);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == '\\' && flag ==1)
+		    		  {
+		    			  sb.append((char)92);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == '"' && flag ==1)
+		    		  {
+		    			  sb.append((char)34);
+	  	                  getChar();
+		    		  }
+		    		  if (ch == '\'' && flag ==1)
+		    		  {
+		    			  sb.append((char)39);
+	  	                  getChar();
+		    		  }
+		    		  
+		    		  if(flag == 0)
+		    		  {
+		    			  sb.append((char)ch);
+	  	                  getChar();
+	  	                  if (ch == -1)
+	  	                  {
+	  	                	throw new LexicalException("String missing single quote!");
+	  	                  }
+		    		  }
 		    	  }
 		    	  sb.append('\'');
 		    	  t = new Token(STRINGLIT,sb.toString(),pos,line);

@@ -81,10 +81,10 @@ class ScannerTest {
 		String file = "C:\\Users\\user\\eclipse-workspace\\Proj2\\src\\testInputFiles\\test2.input";
 		Reader r = new BufferedReader(new FileReader(file));
 		Scanner s = new Scanner(r);
-		//System.out.println((char)r.read());
-        assertThrows(LexicalException.class, ()->{
-		   s.getNext();
-        });
+		Token t;
+		show(t= s.getNext());
+		assertEquals(STRINGLIT, t.kind);
+		assertEquals("\"b\\nla\"",t.text);
 	}
 	
 
@@ -198,6 +198,17 @@ class ScannerTest {
 		show(t= s.getNext());
 		assertEquals(LPAREN, t.kind);
 		assertEquals("(",t.text);
+		
+	}
+	
+	@Test
+	void test9() throws Exception {
+		Reader r = new StringReader("\"b\\nla\"");
+		Scanner s = new Scanner(r);
+		Token t;
+		show(t= s.getNext());
+		assertEquals(STRINGLIT, t.kind);
+		assertEquals("",t.text);
 		
 	}
 
