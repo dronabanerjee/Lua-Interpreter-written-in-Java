@@ -31,7 +31,7 @@ public class Scanner {
 	Map <String, Token.Kind> keywords = new HashMap<>();
 	
 	private enum State {
-		START, HAS_EQ, IN_NUMLIT, IN_IDENT, IN_DIGIT, HAS_COLON, HAS_DIV, HAS_GT, HAS_LT, HAS_NOT, HAS_DOT, HAS_DOTDOT
+		START, HAS_EQ, IN_NUMLIT, IN_IDENT, IN_DIGIT, HAS_COLON, HAS_DIV, HAS_GT, HAS_LT, HAS_NOT, HAS_DOT, HAS_DOTDOT, HAS_DQUOTES, HAS_SQUOTES, HAS_HYPHEN
 		}
 
 	int ch;
@@ -77,9 +77,8 @@ public class Scanner {
 	void getChar() throws IOException {
 		  //read next char
 		  ch= r.read();
-		  //update currPos and currLine
+		  //update currPos
 		  CurrPos++;
-		  CurrLine++;
 		}
 
 
@@ -99,11 +98,20 @@ public class Scanner {
 		    	  
 		    	  // skip white space
 		    	    pos = CurrPos;
+		    	    line = CurrLine;
 		    	    switch (ch) 
 		    	    {
 		    	    	case '+': {
 		    	    		
 		    	    		t = new Token(OP_PLUS, "+", pos, line);
+		    	    		getChar();
+		    	    	
+		    	    	}break;
+		    	    	
+		    	    	case '\n': {
+		    	    		
+		    	    		CurrLine++;
+		    	    		//t = new Token(OP_PLUS, "+", pos, line);
 		    	    		getChar();
 		    	    	
 		    	    	}break;
@@ -124,6 +132,7 @@ public class Scanner {
 		    	    	case '=': {
 		    	    	
 		    	    		pos = CurrPos;
+		    	    		line = CurrLine;
 		    	    		state = State.HAS_EQ; 
 		    	    		getChar();
 		    	    		
@@ -141,6 +150,26 @@ public class Scanner {
 		    	    		
 		    	    		t = new Token(COMMA,",",pos,line);
 		    	    		getChar();
+		    	    		
+		    	    	}break;
+		    	    	
+		    	    	case '"': {
+		    	    		
+		    	    		pos = CurrPos;
+		    	    		line = CurrLine;
+		    	    		state = State.HAS_DQUOTES; 
+		    	    		getChar();
+		    	    	
+		    	    		
+		    	    	}break;
+		    	    	
+		    	    	case '\'': {
+		    	    		
+		    	    		pos = CurrPos;
+		    	    		line = CurrLine;
+		    	    		state = State.HAS_SQUOTES; 
+		    	    		getChar();
+		    	    	
 		    	    		
 		    	    	}break;
 		    	    	
@@ -207,6 +236,7 @@ public class Scanner {
 		    	    	case '~': {
 		    	    		
 		    	    		pos = CurrPos;
+		    	    		line = CurrLine;
 		    	    		state = State.HAS_NOT; 
 		    	    		getChar();
 		    	    		
@@ -243,6 +273,7 @@ public class Scanner {
 		    	    	case '/': {
 		    	    		
 		    	    		pos = CurrPos;
+		    	    		line = CurrLine;
 		    	    		state = State.HAS_DIV; 
 		    	    		getChar();
 		    	    		
@@ -250,15 +281,20 @@ public class Scanner {
 		    	    	
 		    	    	case '-': {
 		    	    		
-		    	    		t = new Token(OP_MINUS,"-",pos,line);
+		    	    		pos = CurrPos;
+		    	    		line = CurrLine;
+		    	    		state = State.HAS_HYPHEN; 
 		    	    		getChar();
+		    
 		    	    		
 		    	    	}break;
+		    	    	
 		    	    	
 		    	    	
 		    	    	case ':': {
 		    	    		
 		    	    		pos = CurrPos;
+		    	    		line = CurrLine;
 		    	    		state = State.HAS_COLON; 
 		    	    		getChar();
 		    	    		
@@ -267,6 +303,7 @@ public class Scanner {
 		    	    	case '.': {
 		    	    		
 		    	    		pos = CurrPos;
+		    	    		line = CurrLine;
 		    	    		state = State.HAS_DOT; 
 		    	    		getChar();
 		    	    		
@@ -275,6 +312,7 @@ public class Scanner {
 		    	    	case '>': {
 		    	    		
 		    	    		pos = CurrPos;
+		    	    		line = CurrLine;
 		    	    		state = State.HAS_GT; 
 		    	    		getChar();
 		    	    		
@@ -283,6 +321,7 @@ public class Scanner {
 		    	    	case '<': {
 		    	    		
 		    	    		pos = CurrPos;
+		    	    		line = CurrLine;
 		    	    		state = State.HAS_LT; 
 		    	    		getChar();
 		    	    		
@@ -300,19 +339,21 @@ public class Scanner {
 		    	            if (Character.isDigit(ch))
 		    	            {
 		    	            	pos = CurrPos;
+		    	            	line = CurrLine;
 		    	            	state = State.IN_DIGIT; 		
 
 		    	            } 
 		    	            else if (Character.isJavaIdentifierStart(ch)) 
 		    	            {
 		    	            	 pos = CurrPos;
+		    	            	 line = CurrLine;
 		    	                 state = State.IN_IDENT; 
 		    	                 
 		    	             } 
 		    	             else 
 		    	             { 
 		    	            	 //error(….);
-		    	            	 System.out.println("Error!!!!!!!!");
+		    	            	 throw new LexicalException("Invalid Character!!");
 		    	             }
 		    	          }
 		    	
@@ -337,6 +378,25 @@ public class Scanner {
 		    	  
 		      } break;
 		      
+		      case HAS_HYPHEN: 
+		      {
+		    	  
+		    	  if ((char)ch == '-')
+		    	  {
+		    		  while((char)ch != '\n')
+		    		  {
+		    			  getChar();
+		    		  }
+		    		  state = state.START;
+		    	  }
+		    	  else 
+		    	  {
+		    		  t = new Token(OP_MINUS,"-",pos,line);
+		    	  }
+		    	  
+		    	  
+		      } break;
+		      
 		      
 		      case HAS_DOT: 
 		      {
@@ -344,6 +404,7 @@ public class Scanner {
 		    	  if ((char)ch == '.')
 		    	  {
 		    		  pos = CurrPos;
+		    		  line = CurrLine;
 	    	    	  state = State.HAS_DOTDOT; 
 	    	    	  getChar();
 		    	  }
@@ -455,6 +516,44 @@ public class Scanner {
 		    	  {
 		    		  t = new Token(OP_DIV,"/",pos,line);
 		    	  }
+		    	  
+		      } break;
+		      
+		      case HAS_DQUOTES: 
+		      {
+		    	  sb = new StringBuilder();
+		    	  sb.append('"');
+		    	  while((char)ch != '"')
+		    	  {
+		    		  sb.append((char)ch);
+  	                  getChar();
+  	                  if (ch == -1)
+  	                  {
+  	                	throw new LexicalException("String missing double quote!");
+  	                  }
+		    	  }
+		    	  sb.append('"');
+		    	  t = new Token(STRINGLIT,sb.toString(),pos,line);
+		    	  getChar();
+		    	  
+		      } break;
+		      
+		      case HAS_SQUOTES: 
+		      {
+		    	  sb = new StringBuilder();
+		    	  sb.append("'");
+		    	  while((char)ch != '\'')
+		    	  {
+		    		  sb.append((char)ch);
+  	                  getChar();
+  	                  if (ch == -1)
+  	                  {
+  	                	throw new LexicalException("String missing single quote!");
+  	                  }
+		    	  }
+		    	  sb.append('\'');
+		    	  t = new Token(STRINGLIT,sb.toString(),pos,line);
+		    	  getChar();
 		    	  
 		      } break;
 		      

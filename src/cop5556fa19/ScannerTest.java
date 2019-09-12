@@ -178,5 +178,27 @@ class ScannerTest {
 		assertEquals(")",t.text);
 		
 	}
+	
+	@Test
+	void test7() throws Exception {
+		Reader r = new StringReader("\"bla\"");
+		Scanner s = new Scanner(r);
+		Token t;
+		show(t= s.getNext());
+		assertEquals(STRINGLIT, t.kind);
+		assertEquals("\"bla\"",t.text);
+		
+	}
+	
+	@Test
+	void test8() throws Exception {
+		Reader r = new StringReader("( --bla bla,,,,+");
+		Scanner s = new Scanner(r);
+		Token t;
+		show(t= s.getNext());
+		assertEquals(LPAREN, t.kind);
+		assertEquals("(",t.text);
+		
+	}
 
 }

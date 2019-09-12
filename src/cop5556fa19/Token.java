@@ -72,7 +72,7 @@ public class Token {
 		DOT,   // .
 		DOTDOT,  // .. 
 		DOTDOTDOT, // ... 
-		STRINGLIT, //left
+		STRINGLIT, //
 		EOF;
 	}
 	
@@ -98,10 +98,12 @@ public class Token {
 		{
 			t = Integer.toString(getIntVal());
 		}
+		/*
 		if (kind == kind.STRINGLIT)
 		{
 			t = getStringVal();
 		}
+		*/
 		if (kind == kind.NAME)
 		{
 			t = getName();
