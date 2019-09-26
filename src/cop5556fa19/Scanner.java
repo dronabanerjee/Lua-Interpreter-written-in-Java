@@ -352,7 +352,6 @@ public class Scanner {
 		    	             } 
 		    	             else 
 		    	             { 
-		    	            	 //error(….);
 		    	            	 throw new LexicalException("Invalid Character!!");
 		    	             }
 		    	          }
@@ -383,7 +382,7 @@ public class Scanner {
 		    	  
 		    	  if ((char)ch == '-')
 		    	  {
-		    		  while((char)ch != '\n')
+		    		  while((char)ch != '\n' && ch != -1)
 		    		  {
 		    			  getChar();
 		    		  }
@@ -440,7 +439,7 @@ public class Scanner {
 		    		  t = new Token(BIT_SHIFTR,">>",pos,line);
 		    		  getChar();
 		    	  }
-		    	  if ((char)ch == '=')
+		    	  else if ((char)ch == '=')
 		    	  {
 		    		  t = new Token(REL_GE,">=",pos,line);
 		    		  getChar();
@@ -461,14 +460,14 @@ public class Scanner {
 		    		  t = new Token(BIT_SHIFTL,"<<",pos,line);
 		    		  getChar();
 		    	  }
-		    	  if ((char)ch == '=')
+		    	  else if ((char)ch == '=')
 		    	  {
 		    		  t = new Token(REL_LE,"<=",pos,line);
 		    		  getChar();
 		    	  }
 		    	  else 
 		    	  {
-		    		  t = new Token(REL_LT,">",pos,line);
+		    		  t = new Token(REL_LT,"<",pos,line);
 		    	  }
 		    	  
 		    	  
@@ -524,6 +523,7 @@ public class Scanner {
 		    	  sb = new StringBuilder();
 		    	  sb.append('"');
 		    	  int flag =0;
+		    	  //int flag2 =0;
 		    	  while((char)ch != '"')
 		    	  {
 		    		  flag = 0;
@@ -536,66 +536,97 @@ public class Scanner {
 		    		  {
 		    			  sb.append((char)10);
 	  	                  getChar();
+	  	                  flag = 2;
 		    		  }
 		    		  if (ch == 'a' && flag ==1)
 		    		  {
 		    			  sb.append((char)7);
 	  	                  getChar();
+	  	                  flag = 2;
 		    		  }
 		    		  if (ch == 'b' && flag ==1)
 		    		  {
 		    			  sb.append((char)8);
 	  	                  getChar();
+	  	                  flag = 2;
 		    		  }
 		    		  if (ch == 'f' && flag ==1)
 		    		  {
 		    			  sb.append((char)12);
 	  	                  getChar();
+	  	                  flag = 2;
 		    		  }
 		    		  if (ch == 'r' && flag ==1)
 		    		  {
 		    			  sb.append((char)13);
 	  	                  getChar();
+	  	                  flag = 2;
 		    		  }
 		    		  if (ch == 't' && flag ==1)
 		    		  {
 		    			  sb.append((char)9);
 	  	                  getChar();
+	  	                  flag = 2;
 		    		  }
 		    		  if (ch == 'v' && flag ==1)
 		    		  {
 		    			  sb.append((char)11);
 	  	                  getChar();
+	  	                  flag = 2;
 		    		  }
 		    		  if (ch == '\\' && flag ==1)
 		    		  {
 		    			  sb.append((char)92);
 	  	                  getChar();
+	  	                  flag = 2;
+	  	                  /*
+	  	                  if (ch != 'a' && ch != 'b' && ch != 'f' && ch != 'n' && ch != 'r' && ch != 't' && ch != 'v' && ch != '\\' && ch != '"' && ch != '\'')
+	  	                  {
+	  	                	throw new LexicalException("String includes \\\\");
+	  	                  }
+	  	                  */
 		    		  }
 		    		  if (ch == '"' && flag ==1)
 		    		  {
 		    			  sb.append((char)34);
 	  	                  getChar();
+	  	                  flag = 2;
+	  	                  //flag2 = 1;
 		    		  }
 		    		  if (ch == '\'' && flag ==1)
 		    		  {
 		    			  sb.append((char)39);
 	  	                  getChar();
+	  	                  flag = 2;
+		    		  }
+		    		  if (ch == '\'' && flag ==0)
+		    		  {
+		    			  throw new LexicalException("String includes '");
 		    		  }
 		    		  
-		    		  if(flag == 0)
+		    		  if(flag == 0 && ch != -1)
 		    		  {
 		    			  sb.append((char)ch);
 	  	                  getChar();
 	  	                  if (ch == -1)
 	  	                  {
-	  	                	throw new LexicalException("String missing double quote!");
+	  	                	throw new LexicalException("String missing double quotes!");
 	  	                  }
 		    		  }
+		    		  if (ch == -1)
+		    		  {
+		    			  throw new LexicalException("String missing double quotes!");
+		    		  }
+		    		  
+		    		  if(flag==1)
+		    		  {
+		    			  throw new LexicalException("String includes \\");
+		    		  }
+		    		  
 		    	  }
 		    	  sb.append('"');
-		    	  t = new Token(STRINGLIT,sb.toString(),pos,line);
-		    	  getChar();
+				  t = new Token(STRINGLIT,sb.toString(),pos,line);
+				  getChar();
 		    	  
 		      } break;
 		      
@@ -604,6 +635,7 @@ public class Scanner {
 		    	  sb = new StringBuilder();
 		    	  sb.append("'");
 		    	  int flag = 0;
+		    	  //int flag2 = 0;
 		    	  while((char)ch != '\'')
 		    	  {
 		    		  flag = 0;
@@ -616,61 +648,85 @@ public class Scanner {
 		    		  {
 		    			  sb.append((char)10);
 	  	                  getChar();
+	  	                  flag =2;
 		    		  }
 		    		  if (ch == 'a' && flag ==1)
 		    		  {
 		    			  sb.append((char)7);
 	  	                  getChar();
+	  	                  flag =2;
 		    		  }
 		    		  if (ch == 'b' && flag ==1)
 		    		  {
 		    			  sb.append((char)8);
 	  	                  getChar();
+	  	                  flag =2;
 		    		  }
 		    		  if (ch == 'f' && flag ==1)
 		    		  {
 		    			  sb.append((char)12);
 	  	                  getChar();
+	  	                  flag =2;
 		    		  }
 		    		  if (ch == 'r' && flag ==1)
 		    		  {
 		    			  sb.append((char)13);
 	  	                  getChar();
+	  	                  flag =2;
 		    		  }
 		    		  if (ch == 't' && flag ==1)
 		    		  {
 		    			  sb.append((char)9);
 	  	                  getChar();
+	  	                  flag =2;
 		    		  }
 		    		  if (ch == 'v' && flag ==1)
 		    		  {
 		    			  sb.append((char)11);
 	  	                  getChar();
+	  	                  flag =2;
 		    		  }
 		    		  if (ch == '\\' && flag ==1)
 		    		  {
 		    			  sb.append((char)92);
 	  	                  getChar();
+	  	                  flag =2;
 		    		  }
 		    		  if (ch == '"' && flag ==1)
 		    		  {
 		    			  sb.append((char)34);
 	  	                  getChar();
+	  	                  flag =2;
 		    		  }
 		    		  if (ch == '\'' && flag ==1)
 		    		  {
 		    			  sb.append((char)39);
 	  	                  getChar();
+	  	                  flag =2;
 		    		  }
 		    		  
-		    		  if(flag == 0)
+		    		  if (ch == '"' && flag ==0)
+		    		  {
+		    			  throw new LexicalException("String includes \"");
+		    		  }
+		    		  
+		    		  if(flag == 0 && ch != -1)
 		    		  {
 		    			  sb.append((char)ch);
 	  	                  getChar();
 	  	                  if (ch == -1)
 	  	                  {
-	  	                	throw new LexicalException("String missing single quote!");
+	  	                	throw new LexicalException("String missing single quotes!");
 	  	                  }
+		    		  }
+		    		  if (ch == -1)
+		    		  {
+		    			  throw new LexicalException("String missing single quotes!");
+		    		  }
+		    		  
+		    		  if(flag ==1)
+		    		  {
+		    			  throw new LexicalException("String includes \\");
 		    		  }
 		    	  }
 		    	  sb.append('\'');

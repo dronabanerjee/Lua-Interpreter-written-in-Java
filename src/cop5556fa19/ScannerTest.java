@@ -83,8 +83,36 @@ class ScannerTest {
 		Scanner s = new Scanner(r);
 		Token t;
 		show(t= s.getNext());
-		assertEquals(STRINGLIT, t.kind);
-		assertEquals("\"b\\nla\"",t.text);
+		assertEquals(BIT_SHIFTL, t.kind);
+		assertEquals("<<",t.text);
+		show(t= s.getNext());
+		assertEquals(REL_LE, t.kind);
+		assertEquals("<=",t.text);
+		show(t= s.getNext());
+		assertEquals(BIT_SHIFTL, t.kind);
+		assertEquals("<<",t.text);
+		show(t= s.getNext());
+		assertEquals(REL_LE, t.kind);
+		assertEquals("<=",t.text);
+		show(t= s.getNext());
+		assertEquals(BIT_SHIFTL, t.kind);
+		assertEquals("<<",t.text);
+		show(t= s.getNext());
+		assertEquals(REL_LT, t.kind);
+		assertEquals("<",t.text);
+		show(t= s.getNext());
+		assertEquals(BIT_SHIFTR, t.kind);
+		assertEquals(">>",t.text);
+		show(t= s.getNext());
+		assertEquals(REL_GE, t.kind);
+		assertEquals(">=",t.text);
+		show(t= s.getNext());
+		assertEquals(BIT_SHIFTR, t.kind);
+		assertEquals(">>",t.text);
+		show(t= s.getNext());
+		assertEquals(BIT_SHIFTR, t.kind);
+		assertEquals(">>",t.text);
+		
 	}
 	
 
@@ -203,12 +231,50 @@ class ScannerTest {
 	
 	@Test
 	void test9() throws Exception {
-		Reader r = new StringReader("\"b\\nla\"");
+		Reader r = new StringReader("\"\\a\\v\"");
 		Scanner s = new Scanner(r);
 		Token t;
 		show(t= s.getNext());
 		assertEquals(STRINGLIT, t.kind);
-		assertEquals("",t.text);
+		assertEquals("\"\\ncdef\"",t.text);
+		
+	}
+	
+	@Test
+	void test10() throws Exception {
+		Reader r = new StringReader("\'");
+		Scanner s = new Scanner(r);
+		assertThrows(LexicalException.class, ()->{
+			   s.getNext();
+	        });
+		
+	}
+	
+	@Test
+	void test11() throws Exception {
+		String file = "C:\\Users\\user\\eclipse-workspace\\Proj2\\src\\testInputFiles\\test2.input";
+		Reader r = new BufferedReader(new FileReader(file));
+		Scanner s = new Scanner(r);
+		/*
+		Token t;
+		show(t= s.getNext());
+		assertEquals(STRINGLIT, t.kind);
+		assertEquals("'abc'",t.text);
+		*/
+		assertThrows(LexicalException.class, ()->{
+			   s.getNext();
+	        });
+		
+	}
+	
+	@Test
+	void test12() throws Exception {
+		String file = "C:\\Users\\user\\eclipse-workspace\\Proj2\\src\\testInputFiles\\test2.input";
+		Reader r = new BufferedReader(new FileReader(file));
+		Scanner s = new Scanner(r);
+		Token t;
+		show(t= s.getNext()); 
+		assertEquals(EOF, t.kind);
 		
 	}
 
