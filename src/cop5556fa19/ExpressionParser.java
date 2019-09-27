@@ -127,7 +127,7 @@ private Exp andExp() throws Exception{
 				Token ftp = null;
 				ParList p = null;
 				Block b = null;
-				List nameList = null;
+				List<Name> nameList = new ArrayList<>();
 				Name n = null;
 				if(isKind(LPAREN))
 				{
@@ -271,6 +271,119 @@ private Exp andExp() throws Exception{
 				{
 					throw new SyntaxException(t, "Missing )!");
 				}
+				if(e==null)
+				{
+					throw new SyntaxException(t, "Invalid Sysntax. Expression between paranthesis is null");
+				}
+				consume();
+				break;
+				
+			case LCURLY:
+				ft = consume();
+				Exp fe = null;
+				Exp fe_key = null;
+				Exp fe_value = null;
+				FieldImplicitKey fik = null;
+				FieldNameKey fnk = null;
+				FieldExpKey fek = null;
+				List<Field> fields = new ArrayList<>();
+				Name nf = null;
+				Token temp_token = null;
+				while(!isKind(RCURLY))
+				{
+					//throw new SyntaxException(t, "Missing }!");
+					if(isKind(LSQUARE))
+					{
+						temp_token = t;
+						consume();
+						fe_key = exp();
+						consume();
+						if(isKind(RSQUARE))
+						{
+							consume();
+							if(isKind(ASSIGN))
+							{
+								consume();
+								fe_value = exp();
+								fek = new FieldExpKey(temp_token, fe_key, fe_value);
+								fields.add(fek);
+								consume();
+								if(isKind(COMMA) || isKind(SEMI) || isKind(RCURLY))
+								{
+									if(isKind(COMMA) || isKind(SEMI))
+									{
+										consume();
+									}
+								}
+								else
+								{
+									throw new SyntaxException(t, "Field seperator missing!");
+								}
+							}
+							else
+							{
+								throw new SyntaxException(t, "Invalid FieldExpKey, = missing!");
+							}
+							
+						}
+						else
+						{
+							throw new SyntaxException(t, "Invalid FieldExpKey, ] missing!");
+						}
+						
+
+					}
+					else if(isKind(NAME))
+					{
+						nf = new Name(t, t.text);
+						temp_token = t;
+						consume();
+						if(isKind(ASSIGN))
+						{
+							consume();
+							fe = exp();
+							fnk = new FieldNameKey(temp_token, nf, fe);
+							fields.add(fnk);
+							consume();
+							if(isKind(COMMA) || isKind(SEMI) || isKind(RCURLY))
+							{
+								if(isKind(COMMA) || isKind(SEMI))
+								{
+									consume();
+								}
+							}
+							else
+							{
+								throw new SyntaxException(t, "Field seperator missing!");
+							}
+						}
+						else
+						{
+							throw new SyntaxException(t, "Invalid FieldNameKey, = missing!");
+						}
+						
+					}
+					else
+					{
+						fe = exp();
+						fik = new FieldImplicitKey(t, fe);
+						fields.add(fik);
+						consume();
+						if(isKind(COMMA) || isKind(SEMI) || isKind(RCURLY))
+						{
+							if(isKind(COMMA) || isKind(SEMI))
+							{
+								consume();
+							}
+						}
+						else
+						{
+							throw new SyntaxException(t, "Field seperator missing!");
+						}
+					}
+				}
+				e = new ExpTable(ft, fields);
+				consume();
 				break;
 			
 			default:

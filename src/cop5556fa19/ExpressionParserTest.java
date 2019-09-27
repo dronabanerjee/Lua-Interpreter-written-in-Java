@@ -108,7 +108,7 @@ class ExpressionParserTest {
 
 	@Test
 	void testBinary0() throws Exception {
-		String input = "1 + 2";
+		String input = "(1 + 2)";
 		Exp e = parseAndShow(input);
 		Exp expected = Expressions.makeBinary(1,OP_PLUS,2);
 		show("expected="+expected);
@@ -159,6 +159,15 @@ class ExpressionParserTest {
 		show("expected=" + expected);
 		assertEquals(expected,e);
 		
+	}
+	
+	@Test
+	void testFunction() throws Exception {
+		String input = "function(x,y) end";
+		Exp e = parseAndShow(input);
+		//Exp expected = Expressions.makeBinary(1,OP_PLUS,2);
+		//show("expected="+expected);
+		//assertEquals(expected,e);
 	}
 
 }
