@@ -39,6 +39,7 @@ import cop5556fa19.AST.Name;
 import cop5556fa19.AST.ParList;
 import cop5556fa19.Token.Kind;
 import static cop5556fa19.Token.Kind.*;
+import java.util.Stack;
 
 public class ExpressionParser {
 	
@@ -64,8 +65,14 @@ public class ExpressionParser {
 	Exp exp() throws Exception {
 		Token first = t;
 		Token op;
+		//Token nop = null;
 		Exp e0 = null;
 		Exp e1 = null;
+		//Exp e = null;
+		//int flag = 0;
+		Stack<Exp> stack_exp = new Stack<Exp>();
+		Stack<Token> stack_op = new Stack<Token>();
+		
 		if(isKind(OP_MINUS) || isKind(KW_not) || isKind(OP_HASH) || isKind(BIT_XOR))
 		{
 		    op = consume();
@@ -75,9 +82,53 @@ public class ExpressionParser {
 		else
 		{
 			e0 = andExp();
+			//stack_exp.push(e0);
 			while (isKind(OP_PLUS) || isKind(OP_MINUS) || isKind(OP_TIMES) || isKind(OP_DIV) || isKind(OP_DIVDIV) || isKind(OP_POW) || isKind(OP_MOD) || isKind(BIT_AMP) || isKind(BIT_XOR) || isKind(BIT_OR) || isKind(BIT_SHIFTL) || isKind(BIT_SHIFTR) || isKind(DOTDOT) || isKind(REL_LE) || isKind(REL_GE) || isKind(REL_LT) || isKind(REL_GT) || isKind(REL_EQEQ) || isKind(REL_NOTEQ) || isKind(KW_and) || isKind(KW_or)) {
 				op = consume();
 				e1 = andExp();
+				/*
+				//Implementing Precedence
+				
+				stack_op.push(op);
+				stack_exp.push(e1);
+				if(t.kind==EOF)
+				{
+					op = stack_op.pop();
+					e1 = stack_exp.pop();
+					e0 = stack_exp.pop();
+					stack_exp.push(new ExpBinary(first, e0, op, e1));
+				}
+				
+				
+				while(stack_exp.size()!=1)
+				{
+					if(flag==0)
+					{
+						nop = consume();
+						e = andExp();
+					}
+					
+					if(getPrecedence(nop)>getPrecedence(stack_op.peek()))
+					{
+						stack_op.push(nop);
+						flag =0;
+					}
+					else if(getPrecedence(nop) == getPrecedence(stack_op.peek()) && ((nop.kind==OP_POW) || (nop.kind==DOTDOT)))
+					{
+						stack_op.push(nop);
+						flag =0;
+					}
+					else
+					{
+						op = stack_op.pop();
+						e1 = stack_exp.pop();
+						e0 = stack_exp.pop();
+						stack_exp.push(new ExpBinary(first, e0, op, e1));
+						flag =1;
+					}
+				}			
+				//Implementing Precedence
+				*/
 				e0 = new ExpBinary(first, e0, op, e1);
 			}
 		}
@@ -468,6 +519,9 @@ private Exp andExp() throws Exception{
 		throw new SyntaxException(t, message);
 	}
 	
-
+	public int getPrecedence(Token op_t)
+	{
+		return 2;
+	}
 
 }

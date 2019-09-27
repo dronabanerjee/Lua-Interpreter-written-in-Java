@@ -169,5 +169,14 @@ class ExpressionParserTest {
 		//show("expected="+expected);
 		//assertEquals(expected,e);
 	}
+	
+	@Test
+	void testTable() throws Exception {
+		String input = "{a = 5,}";
+		Exp e = parseAndShow(input);
+		//Exp expected = Expressions.makeBinary(1,OP_PLUS,2);
+		//show("expected="+expected);
+		//assertEquals(expected,e);
+	}
 
 }
