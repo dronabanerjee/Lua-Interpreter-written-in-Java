@@ -83,60 +83,193 @@ public class ExpressionParser {
 		{
 			e0 = andExp();
 			//stack_exp.push(e0);
-			while (isKind(OP_PLUS) || isKind(OP_MINUS) || isKind(OP_TIMES) || isKind(OP_DIV) || isKind(OP_DIVDIV) || isKind(OP_POW) || isKind(OP_MOD) || isKind(BIT_AMP) || isKind(BIT_XOR) || isKind(BIT_OR) || isKind(BIT_SHIFTL) || isKind(BIT_SHIFTR) || isKind(DOTDOT) || isKind(REL_LE) || isKind(REL_GE) || isKind(REL_LT) || isKind(REL_GT) || isKind(REL_EQEQ) || isKind(REL_NOTEQ) || isKind(KW_and) || isKind(KW_or)) {
+			//while (isKind(OP_PLUS) || isKind(OP_MINUS) || isKind(OP_TIMES) || isKind(OP_DIV) || isKind(OP_DIVDIV) || isKind(OP_POW) || isKind(OP_MOD) || isKind(BIT_AMP) || isKind(BIT_XOR) || isKind(BIT_OR) || isKind(BIT_SHIFTL) || isKind(BIT_SHIFTR) || isKind(DOTDOT) || isKind(REL_LE) || isKind(REL_GE) || isKind(REL_LT) || isKind(REL_GT) || isKind(REL_EQEQ) || isKind(REL_NOTEQ) || isKind(KW_and) || isKind(KW_or)) {
+				while(isKind(KW_or))
+				{
 				op = consume();
 				e1 = andExp();
-				/*
-				//Implementing Precedence
-				
-				stack_op.push(op);
-				stack_exp.push(e1);
-				if(t.kind==EOF)
-				{
-					op = stack_op.pop();
-					e1 = stack_exp.pop();
-					e0 = stack_exp.pop();
-					stack_exp.push(new ExpBinary(first, e0, op, e1));
-				}
-				
-				
-				while(stack_exp.size()!=1)
-				{
-					if(flag==0)
-					{
-						nop = consume();
-						e = andExp();
-					}
-					
-					if(getPrecedence(nop)>getPrecedence(stack_op.peek()))
-					{
-						stack_op.push(nop);
-						flag =0;
-					}
-					else if(getPrecedence(nop) == getPrecedence(stack_op.peek()) && ((nop.kind==OP_POW) || (nop.kind==DOTDOT)))
-					{
-						stack_op.push(nop);
-						flag =0;
-					}
-					else
-					{
-						op = stack_op.pop();
-						e1 = stack_exp.pop();
-						e0 = stack_exp.pop();
-						stack_exp.push(new ExpBinary(first, e0, op, e1));
-						flag =1;
-					}
-				}			
-				//Implementing Precedence
-				*/
 				e0 = new ExpBinary(first, e0, op, e1);
 			}
 		}
 		return e0;
 	}
 
-	
 private Exp andExp() throws Exception{
+	
+	Token op;
+	//Token nop = null;
+	Token first = t;
+	Exp e0 = null;
+	Exp e1 = null;
+	e0 = relExp();
+	while(isKind(KW_and))
+	{
+		op = consume();
+		e1 = relExp();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;
+}
+
+private Exp relExp() throws Exception{
+	
+	Token op;
+	//Token nop = null;
+	Token first = t;
+	Exp e0 = null;
+	Exp e1 = null;
+	e0 = bitOrExp();
+	while(isKind(REL_LE) || isKind(REL_GE) || isKind(REL_LT) || isKind(REL_GT) || isKind(REL_EQEQ) || isKind(REL_NOTEQ))
+	{
+		op = consume();
+		e1 = bitOrExp();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;
+}
+
+private Exp bitOrExp() throws Exception{
+	
+	Token op;
+	//Token nop = null;
+	Token first = t;
+	Exp e0 = null;
+	Exp e1 = null;
+	e0 = bitXorExp();
+	while(isKind(BIT_OR))
+	{
+		op = consume();
+		e1 = bitXorExp();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;
+}
+
+private Exp bitXorExp() throws Exception{
+	
+	Token op;
+	//Token nop = null;
+	Token first = t;
+	Exp e0 = null;
+	Exp e1 = null;
+	e0 = bitAmpExp();
+	while(isKind(BIT_XOR))
+	{
+		op = consume();
+		e1 = bitAmpExp();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;
+}
+
+private Exp bitAmpExp() throws Exception{
+	
+	Token op;
+	//Token nop = null;
+	Token first = t;
+	Exp e0 = null;
+	Exp e1 = null;
+	e0 = bitShiftExp();
+	while(isKind(BIT_AMP))
+	{
+		op = consume();
+		e1 = bitShiftExp();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;
+}
+
+
+private Exp bitShiftExp() throws Exception{
+	
+	Token op;
+	//Token nop = null;
+	Token first = t;
+	Exp e0 = null;
+	Exp e1 = null;
+	e0 = bitDotDotExp();
+	while(isKind(BIT_SHIFTL) || isKind(BIT_SHIFTR))
+	{
+		op = consume();
+		e1 = bitDotDotExp();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;
+}
+
+private Exp bitDotDotExp() throws Exception{
+	
+	Token op;
+	//Token nop = null;
+	Token first = t;
+	Exp e0 = null;
+	Exp e1 = null;
+	e0 = OpPlusMinusExp();
+	while(isKind(DOTDOT))
+	{
+		op = consume();
+		e1 = bitDotDotExp();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;
+}
+
+
+private Exp OpPlusMinusExp() throws Exception{
+	
+	Token op;
+	//Token nop = null;
+	Token first = t;
+	Exp e0 = null;
+	Exp e1 = null;
+	e0 = OpOthersExp();
+	while(isKind(OP_PLUS) || isKind(OP_MINUS))
+	{
+		op = consume();
+		e1 = OpOthersExp();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;
+}
+
+private Exp OpOthersExp() throws Exception{
+	
+	Token op;
+	//Token nop = null;
+	Token first = t;
+	Exp e0 = null;
+	Exp e1 = null;
+	e0 = OpPowExp();
+	while(isKind(OP_TIMES) || isKind(OP_DIV) || isKind(OP_DIVDIV) || isKind(OP_MOD))
+	{
+		op = consume();
+		e1 = OpPowExp();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;
+}
+
+private Exp OpPowExp() throws Exception{
+	
+	Token op;
+	//Token nop = null;
+	Token first = t;
+	Exp e0 = null;
+	Exp e1 = null;
+	e0 = getExp();
+	while(isKind(OP_POW))
+	{
+		op = consume();
+		e1 = OpPowExp();
+		e0 = new ExpBinary(first, e0, op, e1);
+	}
+	return e0;
+}
+
+	
+	
+	
+private Exp getExp() throws Exception{
 		// TODO Auto-generated method stub
 		Exp e = null;
 		switch(t.kind)
@@ -517,11 +650,6 @@ private Exp andExp() throws Exception{
 	void error(Token t, String m) throws SyntaxException {
 		String message = m + " at " + t.line + ":" + t.pos;
 		throw new SyntaxException(t, message);
-	}
-	
-	public int getPrecedence(Token op_t)
-	{
-		return 2;
 	}
 
 }
