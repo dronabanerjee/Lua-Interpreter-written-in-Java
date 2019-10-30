@@ -95,7 +95,7 @@ public class ExpressionParser {
 	}
 
 	
-//assignment 2 corrections	
+//assignment 2 correction	
 	
 private Exp andExp() throws Exception{
 	
