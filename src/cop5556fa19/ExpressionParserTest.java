@@ -172,7 +172,7 @@ class ExpressionParserTest {
 	
 	@Test
 	void testTable() throws Exception {
-		String input = "{a = 5,}";
+		String input = "{[x+y]=xx*yy}";
 		Exp e = parseAndShow(input);
 		//Exp expected = Expressions.makeBinary(1,OP_PLUS,2);
 		//show("expected="+expected);

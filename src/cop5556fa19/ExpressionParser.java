@@ -481,6 +481,46 @@ private Exp getExp() throws Exception{
 					//throw new SyntaxException(t, "Missing }!");
 					if(isKind(LSQUARE))
 					{
+
+						temp_token = t;
+						consume();
+						fe_key = exp();
+						//consume();
+						if(isKind(RSQUARE))
+						{
+							consume();
+							if(isKind(ASSIGN))
+							{
+								consume();
+								fe_value = exp();
+								fek = new FieldExpKey(temp_token, fe_key, fe_value);
+								fields.add(fek);
+								//consume();
+								if(isKind(COMMA) || isKind(SEMI) || isKind(RCURLY))
+								{
+									if(isKind(COMMA) || isKind(SEMI))
+									{
+										consume();
+									}
+								}
+								else
+								{
+									throw new SyntaxException(t, "Field seperator missing!");
+								}
+							}
+							else
+							{
+								throw new SyntaxException(t, "Invalid FieldExpKey, = missing!");
+							}
+							
+						}
+						else
+						{
+							throw new SyntaxException(t, "Invalid FieldExpKey, ] missing!");
+						}
+						
+						
+						/*
 						temp_token = t;
 						consume();
 						fe_key = exp();
@@ -517,7 +557,7 @@ private Exp getExp() throws Exception{
 						{
 							throw new SyntaxException(t, "Invalid FieldExpKey, ] missing!");
 						}
-						
+						*/
 
 					}
 					else if(isKind(NAME))
