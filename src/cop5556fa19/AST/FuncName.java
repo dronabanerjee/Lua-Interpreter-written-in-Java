@@ -1,16 +1,3 @@
-/**
- * Developed  for the class project in COP5556 Programming Language Principles 
- * at the University of Florida, Fall 2019.
- * 
- * This software is solely for the educational benefit of students 
- * enrolled in the course during the Fall 2019 semester.  
- * 
- * This software, and any software derived from it,  may not be shared with others or posted to public web sites,
- * either during the course or afterwards.
- * 
- *  @Beverly A. Sanders, 2019
- */
-
 package cop5556fa19.AST;
 
 import java.util.ArrayList;
@@ -20,19 +7,19 @@ import cop5556fa19.Token;
 
 public class FuncName extends ASTNode {
 
-	public final List<Name> names;
-	public final Name afterColon;
+	public final List<ExpName> names;
+	public final ExpName afterColon;
 
-	public FuncName(Token firstToken, List<Name> names, Name afterColon) {
+	public FuncName(Token firstToken, List<ExpName> names, ExpName nameAfterColon) {
 		super(firstToken);
 		this.names = names;
-		this.afterColon = afterColon;
+		this.afterColon = nameAfterColon;
 	}
 
-	public FuncName(Token firstToken, Name name) {
+	public FuncName(Token firstToken, ExpName n) {
 		super(firstToken);
 		names = new ArrayList<>();
-		names.add(name);
+		names.add(n);
 		afterColon = null;
 	}
 

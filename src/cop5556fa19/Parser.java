@@ -18,10 +18,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import cop5556fa19.AST.Block;
+import cop5556fa19.AST.Chunk;
 import cop5556fa19.AST.Exp;
 import cop5556fa19.AST.ExpBinary;
 import cop5556fa19.AST.ExpFalse;
 import cop5556fa19.AST.ExpFunction;
+import cop5556fa19.AST.ExpFunctionCall;
 import cop5556fa19.AST.ExpInt;
 import cop5556fa19.AST.ExpName;
 import cop5556fa19.AST.ExpNil;
@@ -31,6 +33,11 @@ import cop5556fa19.AST.ExpTrue;
 import cop5556fa19.AST.ExpUnary;
 import cop5556fa19.AST.ExpVarArgs;
 import cop5556fa19.AST.Field;
+import cop5556fa19.AST.Stat;
+import cop5556fa19.AST.StatAssign;
+import cop5556fa19.AST.StatBreak;
+import cop5556fa19.AST.StatLabel;
+import cop5556fa19.AST.RetStat;
 import cop5556fa19.AST.FieldExpKey;
 import cop5556fa19.AST.FieldImplicitKey;
 import cop5556fa19.AST.FieldNameKey;
@@ -41,7 +48,7 @@ import cop5556fa19.Token.Kind;
 import static cop5556fa19.Token.Kind.*;
 import java.util.Stack;
 
-public class ExpressionParser {
+public class Parser {
 	
 	@SuppressWarnings("serial")
 	class SyntaxException extends Exception {
@@ -56,7 +63,7 @@ public class ExpressionParser {
 	Token t;  //invariant:  this is the next token
 
 
-	ExpressionParser(Scanner s) throws Exception {
+	Parser(Scanner s) throws Exception {
 		this.scanner = s;
 		t = scanner.getNext(); //establish invariant
 	}
@@ -168,7 +175,6 @@ private Exp bitXorExp() throws Exception{
 private Exp bitAmpExp() throws Exception{
 	
 	Token op;
-	//Token nop = null;
 	Token first = t;
 	Exp e0 = null;
 	Exp e1 = null;
@@ -186,7 +192,6 @@ private Exp bitAmpExp() throws Exception{
 private Exp bitShiftExp() throws Exception{
 	
 	Token op;
-	//Token nop = null;
 	Token first = t;
 	Exp e0 = null;
 	Exp e1 = null;
@@ -203,7 +208,6 @@ private Exp bitShiftExp() throws Exception{
 private Exp bitDotDotExp() throws Exception{
 	
 	Token op;
-	//Token nop = null;
 	Token first = t;
 	Exp e0 = null;
 	Exp e1 = null;
@@ -221,7 +225,6 @@ private Exp bitDotDotExp() throws Exception{
 private Exp OpPlusMinusExp() throws Exception{
 	
 	Token op;
-	//Token nop = null;
 	Token first = t;
 	Exp e0 = null;
 	Exp e1 = null;
@@ -238,7 +241,6 @@ private Exp OpPlusMinusExp() throws Exception{
 private Exp OpOthersExp() throws Exception{
 	
 	Token op;
-	//Token nop = null;
 	Token first = t;
 	Exp e0 = null;
 	Exp e1 = null;
@@ -255,7 +257,6 @@ private Exp OpOthersExp() throws Exception{
 private Exp OpPowExp() throws Exception{
 	
 	Token op;
-	//Token nop = null;
 	Token first = t;
 	Exp e0 = null;
 	Exp e1 = null;
@@ -331,6 +332,7 @@ private Exp getExp() throws Exception{
 							}
 							else
 							{
+								/*
 								consume();
 								if(isKind(KW_end))
 								{
@@ -340,10 +342,21 @@ private Exp getExp() throws Exception{
 								{
 									throw new SyntaxException(t, "Function body is missing Keyword end or block is not null!");
 								}
+								*/
+								consume();
+								b = block();
+								fb = new FuncBody(ft, p, b);
+								
+								consume();
+								if(!isKind(KW_end))
+								{
+									throw new SyntaxException(t, "Function body is missing Keyword End!");
+								}
 							}
 						}
 						else if(isKind(RPAREN))
 						{
+							/*
 							consume();
 							if(isKind(KW_end))
 							{
@@ -352,6 +365,16 @@ private Exp getExp() throws Exception{
 							else
 							{
 								throw new SyntaxException(t, "Function body is missing Keyword end or block is not null!");
+							}
+							*/
+							consume();
+							b = block();
+							fb = new FuncBody(ft, p, b);
+							
+							consume();
+							if(!isKind(KW_end))
+							{
+								throw new SyntaxException(t, "Function body is missing Keyword End!");
 							}
 						}
 						else
@@ -366,6 +389,7 @@ private Exp getExp() throws Exception{
 									ftp = consume();
 									if(isKind(RPAREN))
 									{
+										/*
 										consume();
 										if(isKind(KW_end))
 										{
@@ -376,6 +400,18 @@ private Exp getExp() throws Exception{
 										{
 											throw new SyntaxException(t, "Function body is missing Keyword end or block is not null!");
 										}
+										*/
+										consume();
+										b = block();
+										p = new ParList(ftp, nameList, false);
+										fb = new FuncBody(ft, p, b);
+										
+										consume();
+										if(!isKind(KW_end))
+										{
+											throw new SyntaxException(t, "Function body is missing Keyword End!");
+										}
+										
 										break;
 									}
 								}
@@ -392,6 +428,19 @@ private Exp getExp() throws Exception{
 											{
 												throw new SyntaxException(t, "Invalid ParList!");
 											}
+											
+											consume();
+											b = block();
+		
+											fb = new FuncBody(ft, p, b);
+											
+											consume();
+											if(!isKind(KW_end))
+											{
+												throw new SyntaxException(t, "Function body is missing Keyword End!");
+											}
+											
+											/*
 											consume();
 											if(isKind(KW_end))
 											{
@@ -401,6 +450,7 @@ private Exp getExp() throws Exception{
 											{
 												throw new SyntaxException(t, "Function body is missing Keyword end or block is not null!");
 											}
+											*/
 											break;
 										}
 										if(isKind(NAME))
@@ -411,6 +461,18 @@ private Exp getExp() throws Exception{
 											if(isKind(RPAREN))
 											{
 												consume();
+												b = block();
+												p = new ParList(ftp, nameList, false);
+												fb = new FuncBody(ft, p, b);
+												
+												consume();
+												if(!isKind(KW_end))
+												{
+													throw new SyntaxException(t, "Function body is missing Keyword End!");
+												}
+												
+												/*
+												consume();
 												if(isKind(KW_end))
 												{
 													p = new ParList(ftp, nameList, false);
@@ -420,6 +482,7 @@ private Exp getExp() throws Exception{
 												{
 													throw new SyntaxException(t, "Function body is missing Keyword end or block is not null!");
 												}
+												*/
 												break;
 											}
 											
@@ -442,6 +505,7 @@ private Exp getExp() throws Exception{
 				{
 					throw new SyntaxException(t, "Expected ( but encountered a different token");
 				}
+				
 				e = new ExpFunction(ftf, fb);
 				consume();
 				break;
@@ -476,16 +540,15 @@ private Exp getExp() throws Exception{
 				List<Field> fields = new ArrayList<>();
 				Name nf = null;
 				Token temp_token = null;
+				Token temp2 = null;
 				while(!isKind(RCURLY))
 				{
-					//throw new SyntaxException(t, "Missing }!");
 					if(isKind(LSQUARE))
 					{
 
 						temp_token = t;
 						consume();
 						fe_key = exp();
-						//consume();
 						if(isKind(RSQUARE))
 						{
 							consume();
@@ -495,7 +558,6 @@ private Exp getExp() throws Exception{
 								fe_value = exp();
 								fek = new FieldExpKey(temp_token, fe_key, fe_value);
 								fields.add(fek);
-								//consume();
 								if(isKind(COMMA) || isKind(SEMI) || isKind(RCURLY))
 								{
 									if(isKind(COMMA) || isKind(SEMI))
@@ -518,60 +580,19 @@ private Exp getExp() throws Exception{
 						{
 							throw new SyntaxException(t, "Invalid FieldExpKey, ] missing!");
 						}
-						
-						
-						/*
-						temp_token = t;
-						consume();
-						fe_key = exp();
-						consume();
-						if(isKind(RSQUARE))
-						{
-							consume();
-							if(isKind(ASSIGN))
-							{
-								consume();
-								fe_value = exp();
-								fek = new FieldExpKey(temp_token, fe_key, fe_value);
-								fields.add(fek);
-								consume();
-								if(isKind(COMMA) || isKind(SEMI) || isKind(RCURLY))
-								{
-									if(isKind(COMMA) || isKind(SEMI))
-									{
-										consume();
-									}
-								}
-								else
-								{
-									throw new SyntaxException(t, "Field seperator missing!");
-								}
-							}
-							else
-							{
-								throw new SyntaxException(t, "Invalid FieldExpKey, = missing!");
-							}
-							
-						}
-						else
-						{
-							throw new SyntaxException(t, "Invalid FieldExpKey, ] missing!");
-						}
-						*/
 
 					}
 					else if(isKind(NAME))
 					{
 						nf = new Name(t, t.text);
 						temp_token = t;
-						consume();
+						temp2 = consume();
 						if(isKind(ASSIGN))
 						{
 							consume();
 							fe = exp();
 							fnk = new FieldNameKey(temp_token, nf, fe);
 							fields.add(fnk);
-							consume();
 							if(isKind(COMMA) || isKind(SEMI) || isKind(RCURLY))
 							{
 								if(isKind(COMMA) || isKind(SEMI))
@@ -584,6 +605,12 @@ private Exp getExp() throws Exception{
 								throw new SyntaxException(t, "Field seperator missing!");
 							}
 						}
+						else if(isKind(RCURLY))
+						{
+							fe = new ExpName(temp2);
+							fik = new FieldImplicitKey(t, fe);
+							fields.add(fik);
+						}
 						else
 						{
 							throw new SyntaxException(t, "Invalid FieldNameKey, = missing!");
@@ -595,7 +622,6 @@ private Exp getExp() throws Exception{
 						fe = exp();
 						fik = new FieldImplicitKey(t, fe);
 						fields.add(fik);
-						consume();
 						if(isKind(COMMA) || isKind(SEMI) || isKind(RCURLY))
 						{
 							if(isKind(COMMA) || isKind(SEMI))
@@ -622,10 +648,138 @@ private Exp getExp() throws Exception{
 	}
 
 
-	private Block block() {
-		return new Block(null);  //this is OK for Assignment 2
+	private Block block() throws Exception {
+		Token ft = t;
+		Stat s = null;
+		List<Stat> StatList = new ArrayList<>();
+		while(isKind(SEMI))
+		{
+			consume();
+		}
+		s = getStat();
+		StatList.add(s);
+		while(s!=null)
+		{
+			while(isKind(SEMI))
+			{
+				consume();
+			}
+			s = getStat();
+			StatList.add(s);
+		}
+		if(isKind(KW_return))
+		{
+			s = getRetStat();
+			StatList.add(s);
+		}
+		return new Block(ft, StatList);
 	}
-
+	
+	Stat getStat() throws Exception{
+		Token ft = t;
+		Token temp = null;
+		Name tempName = null;
+	    if(isKind(NAME) || isKind(LPAREN))
+		{
+			List<Exp> VarList = new ArrayList<>();
+			List<Exp> ExpList = new ArrayList<>();
+			VarList = getVarList();
+			consume();
+			if(isKind(ASSIGN))
+			{
+				consume();
+				ExpList = getExpList();
+				consume();
+				return new StatAssign(ft, VarList, ExpList);
+			}
+			else
+			{
+				throw new SyntaxException(t, "Assignment operator missing!");
+			}
+		}
+		else if(isKind(COLONCOLON))
+		{
+			
+			consume();
+			if(isKind(NAME))
+			{
+				temp = consume();
+				tempName = new Name(temp, temp.text);
+				if(!isKind(COLONCOLON))
+				{
+					throw new SyntaxException(t, "Error in Label. :: missing after Name!");
+				}
+				consume();
+				return new StatLabel(ft, tempName);
+			}
+			else
+			{
+				throw new SyntaxException(t, "Error in Label. Name missing after ::");
+				//throw new SyntaxException(t, "In else!! "+t.text);
+			}
+			
+		}
+		else if(isKind(KW_break))
+		{
+			consume();
+			return new StatBreak(ft);
+		}
+		return null;
+	}
+	
+	RetStat getRetStat() throws Exception{
+		Token ft = t;
+		consume();
+		List<Exp> ExpList = new ArrayList<>();
+		if(!isKind(SEMI) && !isKind(KW_end))
+		{
+			ExpList = getExpList();
+		}
+		else
+		{
+			return new RetStat(ft, ExpList);
+		}
+		
+		consume();
+		if(!isKind(SEMI) && !isKind(KW_end))
+		{
+			
+			throw new SyntaxException(t, "Expression List in Return statement must be followed by ; or Keyword End!");
+		}
+		else
+		{
+			return new RetStat(ft, ExpList);
+		}
+	}
+	
+	FuncBody getFuncBody() throws Exception{
+		
+		return null; //todo
+	}
+	
+	Field getField() throws Exception {
+		
+		return null;
+	}
+	
+	List<ExpName> getNameList() throws Exception{
+		return null;
+	}
+	
+	List<Exp> getExpList() throws Exception{
+		List<Exp> ExpList = new ArrayList<>();
+		Exp tempExp = null;
+		tempExp = exp();
+		ExpList.add(tempExp);
+		while(isKind(COMMA))
+		{
+			consume();
+			tempExp = exp();
+			ExpList.add(tempExp);
+		}
+		return ExpList;
+	}
+	
 
 	protected boolean isKind(Kind kind) {
 		return t.kind == kind;
@@ -694,5 +848,53 @@ private Exp getExp() throws Exception{
 		String message = m + " at " + t.line + ":" + t.pos;
 		throw new SyntaxException(t, message);
 	}
+	
+	Chunk chunk() throws Exception{
+		return new Chunk(t, block());
+	}
 
+
+	public Chunk parse() throws Exception {
+		// TODO Auto-generated method stub
+		Chunk chunk = chunk();
+		if(!isKind(EOF))
+		{
+			throw new SyntaxException(t, "Input is not empty!");
+		}
+		return chunk;
+	}
+	
+	Exp var() throws Exception{
+		Exp e = prefix();
+		if(e instanceof ExpFunctionCall) {
+			throw new SyntaxException(t, "Error in Label!");
+		}
+		else
+		{
+			return e;
+		}
+	}
+	
+	List<Exp> getVarList() throws Exception{
+		List<Exp> VarList = new ArrayList<>();
+		Exp tempVar = null;
+		tempVar = var();
+		
+		VarList.add(tempVar);
+		while(isKind(COMMA)) {
+			consume();
+			tempVar = var();
+			VarList.add(tempVar);
+		}
+		return VarList;
+	}
+	
+	Exp prefix() throws Exception{
+		return null; //TODO return prefixexpTail
+	}
+	
+	Exp prefixExpTail() throws Exception{
+		return null; //TODO return prefixexpTail
+	}
+	
 }

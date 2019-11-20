@@ -1,46 +1,32 @@
-/**
- * Developed  for the class project in COP5556 Programming Language Principles 
- * at the University of Florida, Fall 2019.
- * 
- * This software is solely for the educational benefit of students 
- * enrolled in the course during the Fall 2019 semester.  
- * 
- * This software, and any software derived from it,  may not be shared with others or posted to public web sites,
- * either during the course or afterwards.
- * 
- *  @Beverly A. Sanders, 2019
- */
-
 package cop5556fa19.AST;
 
 import java.util.List;
 
+import cop5556fa19.Token;
 
+public class Block extends Stat {
 
-public class Block extends ASTNode{
+	public final List<Stat> stats;
 
-/***This class is a placeholder.  It will be completed in Assignment 3 ***/
-
-
-	public Block(cop5556fa19.Token firstToken) {
+	public Block(Token firstToken, List<Stat> stats) {
 		super(firstToken);
-		// TODO Auto-generated constructor stub
+		this.stats = stats;
 	}
-	
-	
-	
+
 	@Override
 	public String toString() {
-		return "Block [firstToken=" + firstToken + "]";
+		return "Block [stats=" + stats +  "]";
 	}
-
-
+	
+	
 
 	@Override
 	public int hashCode() {
-		return 0;
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((stats == null) ? 0 : stats.hashCode());
+		return result;
 	}
-
 
 	@Override
 	public boolean equals(Object obj) {
@@ -49,6 +35,12 @@ public class Block extends ASTNode{
 		if (obj == null)
 			return false;
 		if (getClass() != obj.getClass())
+			return false;
+		Block other = (Block) obj;
+		if (stats == null) {
+			if (other.stats != null)
+				return false;
+		} else if (!stats.equals(other.stats))
 			return false;
 		return true;
 	}

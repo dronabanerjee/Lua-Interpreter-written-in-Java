@@ -39,7 +39,7 @@ import cop5556fa19.AST.Field;
 import cop5556fa19.AST.FieldExpKey;
 import cop5556fa19.AST.FieldImplicitKey;
 import cop5556fa19.AST.ParList;
-import cop5556fa19.ExpressionParser.SyntaxException;
+import cop5556fa19.Parser.SyntaxException;
 
 class ExpressionParserTest {
 
@@ -59,7 +59,7 @@ class ExpressionParserTest {
 		show("parser input:\n" + input); // Display the input
 		Reader r = new StringReader(input);
 		Scanner scanner = new Scanner(r); // Create a Scanner and initialize it
-		ExpressionParser parser = new ExpressionParser(scanner);  // Create a parser
+		Parser parser = new Parser(scanner);  // Create a parser
 		Exp e = parser.exp(); // Parse and expression
 		show("e=" + e);  //Show the resulting AST
 		return e;
@@ -172,7 +172,7 @@ class ExpressionParserTest {
 	
 	@Test
 	void testTable() throws Exception {
-		String input = "{[x+y]=xx*yy}";
+		String input = "{3, a}";
 		Exp e = parseAndShow(input);
 		//Exp expected = Expressions.makeBinary(1,OP_PLUS,2);
 		//show("expected="+expected);
