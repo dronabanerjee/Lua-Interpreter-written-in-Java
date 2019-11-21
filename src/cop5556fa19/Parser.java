@@ -29,6 +29,7 @@ import cop5556fa19.AST.ExpName;
 import cop5556fa19.AST.ExpNil;
 import cop5556fa19.AST.ExpString;
 import cop5556fa19.AST.ExpTable;
+import cop5556fa19.AST.ExpTableLookup;
 import cop5556fa19.AST.ExpTrue;
 import cop5556fa19.AST.ExpUnary;
 import cop5556fa19.AST.ExpVarArgs;
@@ -39,9 +40,12 @@ import cop5556fa19.AST.StatBreak;
 import cop5556fa19.AST.StatDo;
 import cop5556fa19.AST.StatFor;
 import cop5556fa19.AST.StatForEach;
+import cop5556fa19.AST.StatFunction;
 import cop5556fa19.AST.StatGoto;
 import cop5556fa19.AST.StatIf;
 import cop5556fa19.AST.StatLabel;
+import cop5556fa19.AST.StatLocalAssign;
+import cop5556fa19.AST.StatLocalFunc;
 import cop5556fa19.AST.StatRepeat;
 import cop5556fa19.AST.StatWhile;
 import cop5556fa19.AST.RetStat;
@@ -49,6 +53,7 @@ import cop5556fa19.AST.FieldExpKey;
 import cop5556fa19.AST.FieldImplicitKey;
 import cop5556fa19.AST.FieldNameKey;
 import cop5556fa19.AST.FuncBody;
+import cop5556fa19.AST.FuncName;
 import cop5556fa19.AST.Name;
 import cop5556fa19.AST.ParList;
 import cop5556fa19.Token.Kind;
@@ -692,6 +697,9 @@ private Exp getExp() throws Exception{
 		List<Exp> ExpList = new ArrayList<>();
 		List<Block> BlockList = new ArrayList<>();
 		List<ExpName> NameList = new ArrayList<>();
+		FuncName fn = null;
+		FuncBody fb = null;
+		
 	    if(isKind(NAME) || isKind(LPAREN))
 		{
 			VarList = getVarList();
@@ -940,6 +948,66 @@ private Exp getExp() throws Exception{
 				throw new SyntaxException(t, "Syntax error in For statement. Keyword In or Assign missing!");
 			}
 		}
+		else if(isKind(KW_function))
+		{
+			consume();
+			ExpName NameAfterColon = null;
+			
+			if(isKind(NAME))
+			{
+				NameList = getNameList();
+				if(isKind(COLON))
+				{
+					consume();
+					temp = consume();
+					NameAfterColon = new ExpName(temp);
+				}
+				fn = new FuncName(ft, NameList, NameAfterColon);
+			}
+			else
+			{
+				throw new SyntaxException(t, "Name missing in Function Statement!");
+			}
+			fb = getFuncBody();
+			return new StatFunction(ft, fn, fb);
+		}
+		else if(isKind(KW_local))
+		{
+			consume();
+			if(isKind(KW_function))
+			{
+				consume();
+				ExpName n3 = null;
+				
+				if(isKind(NAME))
+				{
+					temp = consume();
+					n3 = new ExpName(temp);
+					NameList.add(n3);
+					fn = new FuncName(ft, NameList, null);
+				}
+				else
+				{
+					throw new SyntaxException(t, "Name missing in Local Function Statement!");
+				}
+				fb = getFuncBody();
+				return new StatLocalFunc(ft, fn, fb);
+			}
+			else if(isKind(NAME))
+			{
+				NameList = getNameList();
+				if(isKind(ASSIGN))
+				{
+					consume();
+					ExpList = getExpList();
+				}
+				return new StatLocalAssign(ft, NameList, ExpList);
+			}
+			else
+			{
+				throw new SyntaxException(t, "Error in Local. Local statement missing Name or Function!");
+			}
+		}
 	    
 		return null;	
 	}
@@ -973,8 +1041,145 @@ private Exp getExp() throws Exception{
 	}
 	
 	FuncBody getFuncBody() throws Exception{
+		FuncBody fb = null;
+		Token ft = consume();
+		Token ftf = ft;
+		Token ftp = null;
+		ParList p = null;
+		Block b = null;
+		List<Name> nameList = new ArrayList<>();
+		Name n = null;
+		if(isKind(LPAREN))
+		{
+			ft = consume();
+			if(isKind(DOTDOTDOT) || isKind(NAME) || isKind(RPAREN))
+			{
+				if(isKind(DOTDOTDOT))
+				{
+					p = new ParList(t, nameList, true);
+					consume();
+					if(!isKind(RPAREN))
+					{
+						throw new SyntaxException(t, "Missing ) in function body!");
+					}
+					else
+					{
+						consume();
+						b = block();
+						fb = new FuncBody(ft, p, b);
+						
+						consume();
+						if(!isKind(KW_end))
+						{
+							throw new SyntaxException(t, "Function body is missing Keyword End!");
+						}
+					}
+				}
+				else if(isKind(RPAREN))
+				{
+					consume();
+					b = block();
+					fb = new FuncBody(ft, p, b);
+					
+					consume();
+					if(!isKind(KW_end))
+					{
+						throw new SyntaxException(t, "Function body is missing Keyword End!");
+					}
+				}
+				else
+				{
+					int flag =0;
+					while(!isKind(RPAREN))
+					{
+						if(isKind(NAME) && flag ==0)
+						{
+							n = new Name(t, t.text);
+							nameList.add(n);
+							ftp = consume();
+							if(isKind(RPAREN))
+							{
+								consume();
+								b = block();
+								p = new ParList(ftp, nameList, false);
+								fb = new FuncBody(ft, p, b);
+								
+								consume();
+								if(!isKind(KW_end))
+								{
+									throw new SyntaxException(t, "Function body is missing Keyword End!");
+								}
+								
+								break;
+							}
+						}
+						
+						if(isKind(COMMA))
+						{
+								flag =1;
+								consume();
+								if(isKind(DOTDOTDOT))
+								{
+									p = new ParList(t, nameList, true);
+									consume();
+									if(!isKind(RPAREN))
+									{
+										throw new SyntaxException(t, "Invalid ParList!");
+									}
+									
+									consume();
+									b = block();
+
+									fb = new FuncBody(ft, p, b);
+									
+									consume();
+									if(!isKind(KW_end))
+									{
+										throw new SyntaxException(t, "Function body is missing Keyword End!");
+									}
+									break;
+								}
+								if(isKind(NAME))
+								{
+									n = new Name(t, t.text);
+									nameList.add(n);
+									consume();
+									if(isKind(RPAREN))
+									{
+										consume();
+										b = block();
+										p = new ParList(ftp, nameList, false);
+										fb = new FuncBody(ft, p, b);
+										
+										consume();
+										if(!isKind(KW_end))
+										{
+											throw new SyntaxException(t, "Function body is missing Keyword End!");
+										}
+										break;
+									}
+									
+								}
+						}
+						else
+						{
+							throw new SyntaxException(t, "Unexpected token in ParList or Comma is missing");
+						}
+					}
+					
+				}
+			}
+			else
+			{
+				throw new SyntaxException(t, "Invalid function body!");
+			}
+		}
+		else
+		{
+			throw new SyntaxException(t, "Expected ( but encountered a different token");
+		}
 		
-		return null; //todo
+		return fb;
 	}
 	
 	Field getField() throws Exception {
@@ -1092,15 +1297,15 @@ private Exp getExp() throws Exception{
 		Chunk chunk = chunk();
 		if(!isKind(EOF))
 		{
-			throw new SyntaxException(t, "Input is not empty!");
+			throw new SyntaxException(t, "Input not empty! Did not reach EOF.");
 		}
 		return chunk;
 	}
 	
 	Exp var() throws Exception{
-		Exp e = prefix();
+		Exp e = prefixExp();
 		if(e instanceof ExpFunctionCall) {
-			throw new SyntaxException(t, "FunctionCall Expression!!");
+			throw new SyntaxException(t, "Unexpected FunctionCall Expression encountered!!");
 		}
 		else
 		{
@@ -1122,12 +1327,144 @@ private Exp getExp() throws Exception{
 		return VarList;
 	}
 	
-	Exp prefix() throws Exception{
-		return null; //TODO return prefixexpTail
+	Exp prefixExp() throws Exception
+	{
+		ExpName temp = null;
+		Exp tempExp = null;
+		Token tempT = null;
+		if(isKind(NAME))
+		{
+			tempT = consume();
+			temp = new ExpName(tempT);
+			return prefixExpTail(temp);
+		}
+		else if(isKind(LPAREN))
+		{
+			consume();
+			tempExp = exp();
+			if(isKind(RPAREN))
+			{
+				consume();
+				return prefixExpTail(tempExp);
+			}
+			else
+			{
+				throw new SyntaxException(t, "Error in PrefixExp. RPAREN missing!");
+			}
+		}
+		else
+		{
+			throw new SyntaxException(t, "Error in PrefixExp. Missing LPAREN or NAME!");
+		}
 	}
 	
-	Exp prefixExpTail() throws Exception{
-		return null; //TODO return prefixexpTail
+	Exp prefixExpTail(Exp e) throws Exception
+	{
+		Token ft = t;
+		Token temp = null;
+		Exp e1 = null;
+		Exp e2 = null;
+		Exp e3 = null;
+		List<Exp> args = new ArrayList<>();
+		if(isKind(LSQUARE))
+		{
+			consume();
+			e1 = exp();
+			if(isKind(RSQUARE))
+			{
+				consume();
+				e2 = new ExpTableLookup(ft, e, e1);
+				consume();
+				return prefixExpTail(e2);
+			}
+			else
+			{
+				throw new SyntaxException(t, "Error in PrefixExpTail. RSQUARE missing!");
+			}
+		}
+		else if(isKind(DOT))
+		{
+			consume();
+			if(isKind(NAME))
+			{
+				
+				e1 = new ExpString(t);
+				e2 = new ExpTableLookup(ft, e, e1);
+				consume();
+				return prefixExpTail(e2);
+			}
+			else
+			{
+				throw new SyntaxException(t, "Error in PrefixExpTail. NAME missing!");
+			}
+		}
+		else if(isKind(LPAREN) || isKind(LCURLY) || isKind(STRINGLIT))
+		{
+			args = getArgs();
+			e1 = new ExpFunctionCall(ft, e, args);
+			return prefixExpTail(e1);
+		}
+		else if(isKind(COLON))
+		{
+			consume();
+			if(isKind(NAME))
+			{
+				e1 = new ExpString(t);
+				consume();
+				args = getArgs();
+				e2 = new ExpTableLookup(ft, e, e1);
+				e3 = new ExpFunctionCall(ft, e2, args);
+				return prefixExpTail(e3);
+			}
+			else
+			{
+				throw new SyntaxException(t, "Error in PrefixExpTail. NAME missing after COLON!");
+			}
+		}
+		else
+		{
+			return e;
+		}
+	}
+
+
+	List<Exp> getArgs() throws Exception {
+		
+		List<Exp> ExpList = new ArrayList<>();
+		Exp temp = null;
+		
+		if(isKind(LPAREN))
+		{
+			consume();
+			ExpList = getExpList();
+			if(isKind(RPAREN))
+			{
+				consume();
+				return ExpList;
+			}
+			else
+			{
+				throw new SyntaxException(t, "Error in Args. RPAREN missing!");
+			}
+		}
+		else if(isKind(LCURLY))
+		{
+			temp = exp();
+			ExpList.add(temp);
+			return ExpList;
+		}
+		else if(isKind(STRINGLIT))
+		{
+			temp = new ExpString(t);
+			consume();
+			ExpList.add(temp);
+			return ExpList;
+		}
+		else
+		{
+			throw new SyntaxException(t, "Error in Args!");
+		}
+		// TODO Auto-generated method stub
 	}
 	
 }
