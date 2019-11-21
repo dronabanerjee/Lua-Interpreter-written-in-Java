@@ -1026,18 +1026,6 @@ private Exp getExp() throws Exception{
 			consume();
 			return new RetStat(ft, ExpList);
 		}
-		/*
-		consume();
-		if(!isKind(SEMI) && !isKind(KW_end))
-		{
-			
-			throw new SyntaxException(t, "Expression List in Return statement must be followed by ; or Keyword End!");
-		}
-		else
-		{
-			return new RetStat(ft, ExpList);
-		}
-		*/
 	}
 	
 	FuncBody getFuncBody() throws Exception{
