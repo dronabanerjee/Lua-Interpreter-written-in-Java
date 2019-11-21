@@ -36,7 +36,14 @@ import cop5556fa19.AST.Field;
 import cop5556fa19.AST.Stat;
 import cop5556fa19.AST.StatAssign;
 import cop5556fa19.AST.StatBreak;
+import cop5556fa19.AST.StatDo;
+import cop5556fa19.AST.StatFor;
+import cop5556fa19.AST.StatForEach;
+import cop5556fa19.AST.StatGoto;
+import cop5556fa19.AST.StatIf;
 import cop5556fa19.AST.StatLabel;
+import cop5556fa19.AST.StatRepeat;
+import cop5556fa19.AST.StatWhile;
 import cop5556fa19.AST.RetStat;
 import cop5556fa19.AST.FieldExpKey;
 import cop5556fa19.AST.FieldImplicitKey;
@@ -679,10 +686,14 @@ private Exp getExp() throws Exception{
 		Token ft = t;
 		Token temp = null;
 		Name tempName = null;
+		Block b = null;
+		Exp e = null;
+		List<Exp> VarList = new ArrayList<>();
+		List<Exp> ExpList = new ArrayList<>();
+		List<Block> BlockList = new ArrayList<>();
+		List<ExpName> NameList = new ArrayList<>();
 	    if(isKind(NAME) || isKind(LPAREN))
 		{
-			List<Exp> VarList = new ArrayList<>();
-			List<Exp> ExpList = new ArrayList<>();
 			VarList = getVarList();
 			consume();
 			if(isKind(ASSIGN))
@@ -724,22 +735,230 @@ private Exp getExp() throws Exception{
 			consume();
 			return new StatBreak(ft);
 		}
-		return null;
+		else if(isKind(KW_goto))
+		{
+			consume();
+			if(isKind(NAME))
+			{
+				temp = consume();
+				tempName = new Name(temp, temp.text);
+				return new StatGoto(ft, tempName);
+			}
+			else
+			{
+				throw new SyntaxException(t, "Name missing after GOTO!");
+			}
+		}
+		else if(isKind(KW_do))
+		{
+			consume();
+			b = block();
+			if(isKind(KW_end))
+			{
+				consume();
+				return new StatDo(ft, b);
+			}
+			else
+			{
+				throw new SyntaxException(t, "Keyword End missing in Do!");
+			}
+		}
+		else if(isKind(KW_while))
+		{
+			consume();
+			e = exp();
+			if(isKind(KW_do))
+			{
+				consume();
+				b = block();
+				if(isKind(KW_end))
+				{
+					consume();
+					return new StatWhile(ft, e, b);
+				}
+				else
+				{
+					throw new SyntaxException(t, "Keyword End missing in While!");
+				}
+			}
+			else
+			{
+				throw new SyntaxException(t, "Keyword Do missing in While!");
+			}
+		}
+		else if(isKind(KW_repeat))
+		{
+			consume();
+			b = block();
+			if(isKind(KW_until))
+			{
+				consume();
+				e = exp();
+				return new StatRepeat(ft, b, e);
+			}
+			else
+			{
+				throw new SyntaxException(t, "Keyword Until missing in Repeat!");
+			}
+		}
+		else if(isKind(KW_if))
+		{
+			consume();
+			e = exp();
+			ExpList.add(e);
+			if(isKind(KW_then))
+			{
+				consume();
+				b = block();
+				BlockList.add(b);
+				while(!isKind(KW_end) && !isKind(KW_else))
+				{
+					if(isKind(KW_elseif))
+					{
+						e = exp();
+						ExpList.add(e);
+						if(isKind(KW_then))
+						{
+							consume();
+							b = block();
+							BlockList.add(b);
+							if(isKind(KW_end))
+							{
+								consume();
+								return new StatIf(ft, ExpList, BlockList);
+							}
+						}
+						else
+						{
+							throw new SyntaxException(t, "Keyword Then missing in Elseif!");
+						}
+					}
+					if(isKind(EOF))
+					{
+						throw new SyntaxException(t, "Keyword End missing in If!");
+					}
+				}
+				if(isKind(KW_else))
+				{
+					consume();
+					b = block();
+					if(isKind(KW_end))
+					{
+						consume();
+						return new StatIf(ft, ExpList, BlockList);
+					}
+					else
+					{
+						throw new SyntaxException(t, "Keyword End missing in If after Else block!");
+					}
+				}
+				
+			}
+			else
+			{
+				throw new SyntaxException(t, "Keyword Then missing in If!");
+			}
+		}
+		else if(isKind(KW_for))
+		{
+			consume();
+			NameList = getNameList();
+			Exp ebeg = null;
+			Exp eend = null;
+			Exp einc = null;
+			ExpName n = null;
+			int ListLen = NameList.size();
+
+			if(isKind(ASSIGN) && ListLen == 1)
+			{
+				consume();
+				ebeg = exp();
+				if(isKind(COMMA))
+				{
+					consume();
+					eend = exp();
+					if(isKind(COMMA))
+					{
+						consume();
+						einc = exp();
+						if(!isKind(KW_do))
+						{
+							throw new SyntaxException(t, "Keyword Do missing in For statement!");
+						}
+					}
+					if(isKind(KW_do))
+					{
+						consume();
+						b = block();
+						if(isKind(KW_end))
+						{
+							consume();
+							n = NameList.get(0);
+							return new StatFor(ft, n, ebeg, eend, einc, b);
+						}
+						else
+						{
+							throw new SyntaxException(t, "Keyword End missing in For statement!");
+						}
+					}
+					else
+					{
+						throw new SyntaxException(t, "Keyword Do missing in For statement!");
+					}
+					
+				}
+				else
+				{
+					throw new SyntaxException(t, "Comma missing in For statement!");
+				}
+			}
+			else if(isKind(KW_in))
+			{
+				consume();
+				ExpList = getExpList();
+				if(isKind(KW_do))
+				{
+					consume();
+					b = block();
+					if(isKind(KW_end))
+					{
+						consume();
+						return new StatForEach(ft, NameList, ExpList, b);
+					}
+					else
+					{
+						throw new SyntaxException(t, "Keyword End missing in ForEach statement!");
+					}
+				}
+				else
+				{
+					throw new SyntaxException(t, "Keyword Do missing in ForEach statement!");
+				}
+			}
+			else
+			{
+				throw new SyntaxException(t, "Syntax error in For statement. Keyword In or Assign missing!");
+			}
+		}
+	    
+		return null;	
 	}
 	
 	RetStat getRetStat() throws Exception{
 		Token ft = t;
 		consume();
 		List<Exp> ExpList = new ArrayList<>();
-		if(!isKind(SEMI) && !isKind(KW_end))
+		if(!isKind(SEMI))
 		{
 			ExpList = getExpList();
+			return new RetStat(ft, ExpList);
 		}
 		else
 		{
+			consume();
 			return new RetStat(ft, ExpList);
 		}
-		
+		/*
 		consume();
 		if(!isKind(SEMI) && !isKind(KW_end))
 		{
@@ -750,6 +969,7 @@ private Exp getExp() throws Exception{
 		{
 			return new RetStat(ft, ExpList);
 		}
+		*/
 	}
 	
 	FuncBody getFuncBody() throws Exception{
@@ -763,7 +983,20 @@ private Exp getExp() throws Exception{
 	}
 	
 	List<ExpName> getNameList() throws Exception{
-		return null;
+		List<ExpName> NameList = new ArrayList<>();
+		ExpName tempName = null;
+		Token tmpToken = null;
+		tmpToken = consume();
+		tempName = new ExpName(tmpToken);
+		NameList.add(tempName);
+		while(isKind(COMMA))
+		{
+			consume();
+			tmpToken = consume();
+			tempName = new ExpName(tmpToken);
+			NameList.add(tempName);
+		}
+		return NameList;
 	}
 	
 	List<Exp> getExpList() throws Exception{
@@ -867,7 +1100,7 @@ private Exp getExp() throws Exception{
 	Exp var() throws Exception{
 		Exp e = prefix();
 		if(e instanceof ExpFunctionCall) {
-			throw new SyntaxException(t, "Error in Label!");
+			throw new SyntaxException(t, "FunctionCall Expression!!");
 		}
 		else
 		{
