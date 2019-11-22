@@ -1,7 +1,8 @@
 package cop5556fa19.AST;
 
-import cop5556fa19.Token;
 import static cop5556fa19.Token.Kind;
+
+import cop5556fa19.Token;
 
 
 public class ExpBinary extends Exp {

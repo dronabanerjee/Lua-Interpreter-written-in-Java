@@ -1,6 +1,5 @@
 package cop5556fa19.AST;
 
-import static cop5556fa19.Token.Kind.SEMI;
 import static cop5556fa19.Token.Kind.*;
 
 import java.util.ArrayList;
@@ -71,9 +70,9 @@ public class Expressions {
 		return elist;
 	}
 	
-	public static ExpName makeExpName(String name) {
+	public static ExpName makeExpNameGlobal(String name) {
 		Token first = new Token(NAME,name,0,0);
-		return new ExpName(first);
+		return new ExpName(first,-1);
 	}
 	
 	public static List<Stat>  makeStatList(Stat ... ss){
@@ -149,7 +148,7 @@ public class Expressions {
 
 	public static StatLabel makeStatLabel(String name) {
 		Name n = makeName(name);
-		return new StatLabel(n.firstToken,n);	
+		return new StatLabel(n.firstToken,n, null, 0);	
 	}
 
 	public static StatGoto makeStatGoto(String name) {

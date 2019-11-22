@@ -15,7 +15,7 @@ public class FieldExpKey extends Field {
 
 	@Override
 	public String toString() {
-		return "FieldExpKey [key=" + key + ", value=" + value + ", firstToken=" + firstToken + "]";
+		return "FieldExpKey [key=" + key + ", value=" + value  + "]";
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class FieldExpKey extends Field {
 
 	@Override
 	public Object visit(ASTVisitor v, Object arg) throws Exception {
-		return v.visitFieldExpKey(this, null);
+		return v.visitFieldExpKey(this, arg);
 	}
 
 }

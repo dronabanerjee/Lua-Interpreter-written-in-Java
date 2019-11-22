@@ -25,7 +25,7 @@ public class FuncName extends ASTNode {
 
 	@Override
 	public String toString() {
-		return "FuncName [names=" + names + ", afterColon=" + afterColon + ", firstToken=" + firstToken + "]";
+		return "FuncName [names=" + names + ", afterColon=" + afterColon  + "]";
 	}
 
 	@Override

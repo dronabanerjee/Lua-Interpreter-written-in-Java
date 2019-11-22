@@ -45,7 +45,7 @@ public class ExpTable extends Exp {
 
 	@Override
 	public Object visit(ASTVisitor v, Object arg) throws Exception {
-		return v.visitExpTableConstr(this, arg);
+		return v.visitExpTable(this, arg);
 	}
 
 }

@@ -5,6 +5,26 @@ import cop5556fa19.Token;
 public class Name extends ASTNode {
 
 	public final String name;
+	int lexicalDiff;
+	int localSlot;
+	
+	
+
+	public int getLocalSlot() {
+		return localSlot;
+	}
+
+	public void setLocalSlot(int localSlot) {
+		this.localSlot = localSlot;
+	}
+
+	public int getLexicalDiff() {
+		return lexicalDiff;
+	}
+
+	public void setLexicalDiff(int lexicalDiff) {
+		this.lexicalDiff = lexicalDiff;
+	}
 
 	public Name(Token firstToken, String name) {
 		super(firstToken);
@@ -13,7 +33,7 @@ public class Name extends ASTNode {
 
 	@Override
 	public String toString() {
-		return "Name [name=" + name +  "]";
+		return "Name [name=" + name + ", lexicalDiff=" + lexicalDiff + ", localSlot=" + localSlot + "]";
 	}
 
 	@Override

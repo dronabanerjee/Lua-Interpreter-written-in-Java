@@ -1,16 +1,45 @@
 package cop5556fa19.AST;
 
-import cop5556fa19.Token;
-
 import static cop5556fa19.Token.Kind.*;
+
+//import cop5556fa19.SymbolTable;
+import cop5556fa19.Token;
+//import cop5556fa19.SymbolTable.SymbolTableEntry;
 
 public class ExpName extends Exp {
 
 	public final String name;
+	int lexicalDiff = -3;  //illegal value to indicate lack of initialization
+	int localVarSlot = -4; //illegal value to indicate lack of initialization
+	
+
+
+	public int getLocalVarSlot() {
+		return localVarSlot;
+	}
+
+	public void setLocalVarSlot(int localVarSlot) {
+		this.localVarSlot = localVarSlot;
+	}
+
+	public int getLexicalDiff() {
+		return lexicalDiff;
+	}
+
+	public void setLexicalDiff(int lexicalDiff) {
+		this.lexicalDiff = lexicalDiff;
+	}
 
 	public ExpName(Token firstToken) {
 		super(firstToken);
 		name = firstToken.text;
+		lexicalDiff = -3; //uninitialized
+	}
+	
+	public ExpName(Token firstToken, int lexicalDiff) {
+		super(firstToken);
+		name = firstToken.text;
+		this.lexicalDiff = lexicalDiff;
 	}
 	
 	//use for testing only
@@ -19,9 +48,11 @@ public class ExpName extends Exp {
 		this.name = name;
 	}
 
+
+
 	@Override
 	public String toString() {
-		return "ExpName [name=" + name +  "]";
+		return "ExpName [name=" + name + ", lexicalDiff=" + lexicalDiff + "]";
 	}
 
 	@Override
@@ -51,7 +82,7 @@ public class ExpName extends Exp {
 
 	@Override
 	public Object visit(ASTVisitor v, Object arg) throws Exception {
-		return v.visitExpIdent(this, arg);
+		return v.visitExpName(this, arg);
 	}
 
 }

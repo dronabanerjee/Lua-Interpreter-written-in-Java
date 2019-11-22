@@ -75,7 +75,7 @@ public class Parser {
 	Token t;  //invariant:  this is the next token
 
 
-	Parser(Scanner s) throws Exception {
+	public Parser(Scanner s) throws Exception {
 		this.scanner = s;
 		t = scanner.getNext(); //establish invariant
 	}
@@ -288,6 +288,7 @@ private Exp OpPowExp() throws Exception{
 private Exp getExp() throws Exception{
 		// TODO Auto-generated method stub
 		Exp e = null;
+		Exp tempExp = null;
 		switch(t.kind)
 		{
 			case INTLIT:
@@ -477,7 +478,7 @@ private Exp getExp() throws Exception{
 												p = new ParList(ftp, nameList, false);
 												fb = new FuncBody(ft, p, b);
 												
-												consume();
+												//consume();
 												if(!isKind(KW_end))
 												{
 													throw new SyntaxException(t, "Function body is missing Keyword End!");
@@ -523,13 +524,14 @@ private Exp getExp() throws Exception{
 				break;
 				
 			case NAME:
-				e = new ExpName(t);
+				tempExp = new ExpName(t);
 				consume();
+				e = prefixExpTail(tempExp);
 				break;
 				
 			case LPAREN:
 				consume();
-				e = exp();
+				tempExp = exp();
 				if(!isKind(RPAREN))
 				{
 					throw new SyntaxException(t, "Missing )!");
@@ -539,6 +541,7 @@ private Exp getExp() throws Exception{
 					throw new SyntaxException(t, "Invalid Sysntax. Expression between paranthesis is null");
 				}
 				consume();
+				e = prefixExpTail(tempExp);
 				break;
 				
 			case LCURLY:
@@ -669,7 +672,9 @@ private Exp getExp() throws Exception{
 			consume();
 		}
 		s = getStat();
-		StatList.add(s);
+		if(s!=null)
+		 StatList.add(s);
+		
 		while(s!=null)
 		{
 			while(isKind(SEMI))
@@ -677,12 +682,14 @@ private Exp getExp() throws Exception{
 				consume();
 			}
 			s = getStat();
-			StatList.add(s);
+			if(s!=null)
+				StatList.add(s);
 		}
 		if(isKind(KW_return))
 		{
 			s = getRetStat();
-			StatList.add(s);
+			if(s!=null)
+				StatList.add(s);
 		}
 		return new Block(ft, StatList);
 	}
@@ -703,17 +710,16 @@ private Exp getExp() throws Exception{
 	    if(isKind(NAME) || isKind(LPAREN))
 		{
 			VarList = getVarList();
-			consume();
 			if(isKind(ASSIGN))
 			{
 				consume();
 				ExpList = getExpList();
-				consume();
+				//consume();
 				return new StatAssign(ft, VarList, ExpList);
 			}
 			else
 			{
-				throw new SyntaxException(t, "Assignment operator missing!");
+				throw new SyntaxException(t, "Assignment operator missing!"+t.text);
 			}
 		}
 		else if(isKind(COLONCOLON))
@@ -729,7 +735,7 @@ private Exp getExp() throws Exception{
 					throw new SyntaxException(t, "Error in Label. :: missing after Name!");
 				}
 				consume();
-				return new StatLabel(ft, tempName);
+				return new StatLabel(ft, tempName, null, 0);
 			}
 			else
 			{
@@ -1170,10 +1176,73 @@ private Exp getExp() throws Exception{
 		return fb;
 	}
 	
+	/*
 	Field getField() throws Exception {
-		
-		return null;
+		Token ft = null;
+		ft = consume();
+		Exp fe = null;
+		Exp fe_key = null;
+		Exp fe_value = null;
+		FieldImplicitKey fik = null;
+		FieldNameKey fnk = null;
+		FieldExpKey fek = null;
+		Name nf = null;
+		Token temp_token = null;
+		Token temp2 = null;
+			if(isKind(LSQUARE))
+			{
+
+				temp_token = t;
+				consume();
+				fe_key = exp();
+				if(isKind(RSQUARE))
+				{
+					consume();
+					if(isKind(ASSIGN))
+					{
+						consume();
+						fe_value = exp();
+						fek = new FieldExpKey(temp_token, fe_key, fe_value);
+						return fek;
+					}
+					else
+					{
+						throw new SyntaxException(t, "Invalid FieldExpKey, = missing!");
+					}
+					
+				}
+				else
+				{
+					throw new SyntaxException(t, "Invalid FieldExpKey, ] missing!");
+				}
+
+			}
+			else if(isKind(NAME))
+			{
+				nf = new Name(t, t.text);
+				temp_token = t;
+				temp2 = consume();
+				if(isKind(ASSIGN))
+				{
+					consume();
+					fe = exp();
+					fnk = new FieldNameKey(temp_token, nf, fe);
+					return fnk;
+				}
+				else
+				{
+					throw new SyntaxException(t, "Invalid FieldNameKey, = missing!");
+				}
+				
+			}
+			else
+			{
+				fe = exp();
+				fik = new FieldImplicitKey(t, fe);
+				return fik;
+			}
 	}
+	*/
 	
 	List<ExpName> getNameList() throws Exception{
 		List<ExpName> NameList = new ArrayList<>();
@@ -1285,7 +1354,7 @@ private Exp getExp() throws Exception{
 		Chunk chunk = chunk();
 		if(!isKind(EOF))
 		{
-			throw new SyntaxException(t, "Input not empty! Did not reach EOF.");
+			throw new SyntaxException(t, "Input not empty! Did not reach EOF - "+t.text);
 		}
 		return chunk;
 	}
@@ -1420,6 +1489,7 @@ private Exp getExp() throws Exception{
 		
 		List<Exp> ExpList = new ArrayList<>();
 		Exp temp = null;
+		Token ft = t;
 		
 		if(isKind(LPAREN))
 		{
@@ -1437,13 +1507,57 @@ private Exp getExp() throws Exception{
 		}
 		else if(isKind(LCURLY))
 		{
+			/*
+			Exp e = null;
+			List<Field> nameListTable = new ArrayList<>();
+			consume();
+			if(isKind(RCURLY))
+			{
+				e = new ExpTable(ft, nameListTable);
+				consume();
+				
+			}
+			else
+			{
+				Field f1 = getField();
+				nameListTable.add(f1);
+				while(isKind(COMMA) || isKind(SEMI))
+				{
+					consume();
+					if(isKind(RCURLY))
+					{
+						e = new ExpTable(ft, nameListTable);
+						consume();
+						ExpList.add(e);
+						return ExpList;
+					}
+					else
+					{
+						nameListTable.add(getField());
+					}
+				}
+				if(isKind(RCURLY))
+				{
+					e = new ExpTable(ft, nameListTable);
+					
+				}
+				else
+				{
+					throw new SyntaxException(t, "Error in Args!");
+				}
+			}
+			ExpList.add(e);
+			return ExpList;
+			*/
+			
 			temp = exp();
 			ExpList.add(temp);
 			return ExpList;
+			
 		}
 		else if(isKind(STRINGLIT))
 		{
-			temp = new ExpString(t);
+			temp = new ExpString(ft);
 			consume();
 			ExpList.add(temp);
 			return ExpList;
