@@ -2,6 +2,7 @@ package interpreter;
 
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import cop5556fa19.Token;
@@ -90,8 +91,15 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 	}
 
 	@Override
-	public Object visitExpInt(ExpInt expInt, Object arg) {
-		throw new UnsupportedOperationException();
+	public Object visitExpInt(ExpInt expInt, Object arg) throws Exception {
+		
+		List<LuaValue> intValue = new ArrayList<>();
+		LuaInt val = new LuaInt(expInt.v);
+		intValue.add(val);
+		//intValue = (List<LuaValue>) expInt.visit(this, arg);
+		return intValue;
+		
+		//throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -278,7 +286,26 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitStatAssign(StatAssign statAssign, Object arg) throws Exception {
-		throw new UnsupportedOperationException();
+		
+		List<LuaValue> statAssignValue = new ArrayList<>();
+		List<Exp> vList = statAssign.varList;
+		List<Exp> eList = statAssign.expList;
+		//statAssignValue.addAll(vList);
+		//statAssignValue.add((LuaValue) eList);
+		
+		for(int i=0; i<vList.size(); i++)
+		{
+			statAssignValue.addAll((List<LuaValue>) vList.get(i).visit(this, arg));
+			statAssignValue.addAll((List<LuaValue>) eList.get(i).visit(this, arg));
+		}
+		/*
+		for(int i=0; i<eList.size(); i++)
+		{
+			statAssignValue.addAll((List<LuaValue>) eList.get(i).visit(this, arg));
+		}
+		*/
+	    return statAssignValue;
+		//throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -302,8 +329,14 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 	}
 
 	@Override
-	public Object visitExpName(ExpName expName, Object arg) {
-		throw new UnsupportedOperationException();
+	public Object visitExpName(ExpName expName, Object arg) throws Exception {
+		
+		List<LuaValue> nameValue = new ArrayList<>();
+		LuaString nval = new LuaString(expName.name);
+		nameValue.add(nval);
+		//nameValue = (List<LuaValue>) expName.visit(this, arg);
+		return nameValue;
+		//throw new UnsupportedOperationException();
 	}
 
 
