@@ -1176,74 +1176,6 @@ private Exp getExp() throws Exception{
 		return fb;
 	}
 	
-	/*
-	Field getField() throws Exception {
-		Token ft = null;
-		ft = consume();
-		Exp fe = null;
-		Exp fe_key = null;
-		Exp fe_value = null;
-		FieldImplicitKey fik = null;
-		FieldNameKey fnk = null;
-		FieldExpKey fek = null;
-		Name nf = null;
-		Token temp_token = null;
-		Token temp2 = null;
-			if(isKind(LSQUARE))
-			{
-
-				temp_token = t;
-				consume();
-				fe_key = exp();
-				if(isKind(RSQUARE))
-				{
-					consume();
-					if(isKind(ASSIGN))
-					{
-						consume();
-						fe_value = exp();
-						fek = new FieldExpKey(temp_token, fe_key, fe_value);
-						return fek;
-					}
-					else
-					{
-						throw new SyntaxException(t, "Invalid FieldExpKey, = missing!");
-					}
-					
-				}
-				else
-				{
-					throw new SyntaxException(t, "Invalid FieldExpKey, ] missing!");
-				}
-
-			}
-			else if(isKind(NAME))
-			{
-				nf = new Name(t, t.text);
-				temp_token = t;
-				temp2 = consume();
-				if(isKind(ASSIGN))
-				{
-					consume();
-					fe = exp();
-					fnk = new FieldNameKey(temp_token, nf, fe);
-					return fnk;
-				}
-				else
-				{
-					throw new SyntaxException(t, "Invalid FieldNameKey, = missing!");
-				}
-				
-			}
-			else
-			{
-				fe = exp();
-				fik = new FieldImplicitKey(t, fe);
-				return fik;
-			}
-	}
-	*/
-	
 	List<ExpName> getNameList() throws Exception{
 		List<ExpName> NameList = new ArrayList<>();
 		ExpName tempName = null;
@@ -1507,49 +1439,6 @@ private Exp getExp() throws Exception{
 		}
 		else if(isKind(LCURLY))
 		{
-			/*
-			Exp e = null;
-			List<Field> nameListTable = new ArrayList<>();
-			consume();
-			if(isKind(RCURLY))
-			{
-				e = new ExpTable(ft, nameListTable);
-				consume();
-				
-			}
-			else
-			{
-				Field f1 = getField();
-				nameListTable.add(f1);
-				while(isKind(COMMA) || isKind(SEMI))
-				{
-					consume();
-					if(isKind(RCURLY))
-					{
-						e = new ExpTable(ft, nameListTable);
-						consume();
-						ExpList.add(e);
-						return ExpList;
-					}
-					else
-					{
-						nameListTable.add(getField());
-					}
-				}
-				if(isKind(RCURLY))
-				{
-					e = new ExpTable(ft, nameListTable);
-					
-				}
-				else
-				{
-					throw new SyntaxException(t, "Error in Args!");
-				}
-			}
-			ExpList.add(e);
-			return ExpList;
-			*/
-			
 			temp = exp();
 			ExpList.add(temp);
 			return ExpList;
