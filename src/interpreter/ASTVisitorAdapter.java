@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 
 import cop5556fa19.Token;
+import cop5556fa19.Token.Kind;
 import cop5556fa19.AST.ASTVisitor;
 import cop5556fa19.AST.Block;
 import cop5556fa19.AST.Chunk;
@@ -42,11 +43,14 @@ import cop5556fa19.AST.StatForEach;
 import cop5556fa19.AST.StatFunction;
 import cop5556fa19.AST.StatGoto;
 import cop5556fa19.AST.StatIf;
+import static cop5556fa19.Token.Kind.*;
 import cop5556fa19.AST.StatLabel;
 import cop5556fa19.AST.StatLocalAssign;
 import cop5556fa19.AST.StatLocalFunc;
 import cop5556fa19.AST.StatRepeat;
 import cop5556fa19.AST.StatWhile;
+import interpreter.built_ins.print;
+import interpreter.built_ins.println;
 
 public abstract class ASTVisitorAdapter implements ASTVisitor {
 	
@@ -85,7 +89,127 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitExpBin(ExpBinary expBin, Object arg) throws Exception {
-		throw new UnsupportedOperationException();
+		Exp exp1 = expBin.e0;
+		Exp exp2 = expBin.e1;
+		Kind k = expBin.op;
+		
+		//ExpBinary eb = (ExpBinary) e;
+		LuaValue exp1val = (LuaValue) exp1.visit(this, arg);
+		LuaValue exp2val = (LuaValue) exp2.visit(this, arg);
+		//Kind op = eb.op;
+		
+		if(exp1val.getClass() == LuaInt.class && exp2val.getClass() == LuaInt.class) 
+		{
+			LuaInt exp1int = (LuaInt) exp1val;
+			LuaInt exp2int = (LuaInt) exp2val;
+			if(k == OP_PLUS) 
+			{
+				return new LuaInt(exp1int.v + exp2int.v);
+			}
+			else if(k == OP_POW)
+			{	
+				return new LuaInt((int)Math.pow(exp1int.v, exp2int.v));
+			}
+			else if(k == OP_MINUS)
+			{
+				return new LuaInt(exp1int.v - exp2int.v);
+			}
+			else if(k == OP_TIMES) 
+			{
+				return new LuaInt(exp1int.v * exp2int.v);
+			}
+			else if(k == OP_DIV)
+			{
+				return new LuaInt(exp1int.v / exp2int.v);
+			}
+			else if(k == OP_MOD)
+			{
+				return new LuaInt(exp1int.v % exp2int.v);
+			}
+			else if(k == REL_LE)
+			{
+				return new LuaBoolean(exp1int.v <= exp2int.v);
+			}
+			else if(k == REL_GE) 
+			{
+				return new LuaBoolean(exp1int.v >= exp2int.v);
+			}
+			else if(k == REL_LT) 
+			{
+				return new LuaBoolean(exp1int.v < exp2int.v);
+			}
+			else if(k == REL_GT)
+			{
+				return new LuaBoolean(exp1int.v > exp2int.v);
+			}
+			else if(k == REL_EQEQ)
+			{
+				return new LuaBoolean(exp1int.v == exp2int.v);
+			}
+			else if(k == REL_NOTEQ)
+			{
+				return new LuaBoolean(exp1int.v != exp2int.v);
+			}
+			else if(k == OP_DIVDIV)
+			{
+				return new LuaInt((int) Math.floorDiv(exp1int.v, exp2int.v));
+			}
+			else if(k == BIT_AMP)
+			{
+				return new LuaInt(exp1int.v & exp2int.v);
+			}
+			else if(k == BIT_OR) 
+			{
+				return new LuaInt(exp1int.v | exp2int.v);
+			}
+			else if(k == BIT_XOR) 
+			{
+				return new LuaInt(exp1int.v ^ exp2int.v);
+			}
+			else if(k == BIT_SHIFTL)
+			{
+				return new LuaInt(exp1int.v << exp2int.v);
+			}
+			else if(k == BIT_SHIFTR) 
+			{
+				return new LuaInt(exp1int.v >> exp2int.v);
+			}
+		}
+		else if(exp1val.getClass() == LuaString.class && exp2val.getClass() == LuaString.class) 
+		{
+			LuaString exp1String = (LuaString) exp1val;
+			LuaString exp2String = (LuaString) exp2val;
+			if(k == DOTDOT) 
+			{
+				return new LuaString(exp1String.value + exp2String.value);
+			}
+			else if(k == REL_EQEQ) 
+			{
+				return new LuaBoolean(exp1String.value == exp2String.value);
+			}
+			else if(k == REL_NOTEQ) 
+			{
+				return new LuaBoolean(exp1String.value != exp2String.value);
+			}
+			else if(k == REL_LE) 
+			{
+				return new LuaBoolean(exp1String.value.charAt(0) <= exp2String.value.charAt(0));
+			}
+			else if(k == REL_GE) 
+			{
+				return new LuaBoolean(exp1String.value.charAt(0) >= exp2String.value.charAt(0));
+			}
+			else if(k == REL_LT) 
+			{
+				return new LuaBoolean(exp1String.value.charAt(0) < exp2String.value.charAt(0));
+			}
+			else if(k == REL_GT) 
+			{
+				return new LuaBoolean(exp1String.value.charAt(0) > exp2String.value.charAt(0));
+			}
+		}
+		
+		throw new StaticSemanticException(null, "Failed to evaluate binary expression!");
 	}
 
 	@Override
@@ -183,7 +307,18 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitStatWhile(StatWhile statWhile, Object arg) throws Exception {
-		throw new UnsupportedOperationException();
+		Exp whileE = statWhile.e;
+		Block whileB = statWhile.b;
+		List<LuaValue> bval = new ArrayList<>();
+		//LuaValue eval = null;
+		//LuaBoolean lb = null;
+		
+		while(((LuaBoolean) whileE.visit(this, arg)).value)
+		{
+			bval = (List<LuaValue>) whileB.visit(this, arg);
+		}
+		return bval;
+		//throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -346,7 +481,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		List<Exp> eList = statAssign.expList;
 		Exp v,e;
 		LuaString key = null;
-		LuaValue eval = null;;
+		LuaValue eval = null;
 		for(int i=0; i<vList.size(); i++)
 		{
 			v = vList.get(i);
@@ -370,7 +505,32 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitExpFunctionCall(ExpFunctionCall expFunctionCall, Object arg) throws Exception {
-		throw new UnsupportedOperationException();
+		Exp funcE = expFunctionCall.f;
+		List<Exp> funcArgs = expFunctionCall.args;
+		LuaValue eval = null;
+		List<LuaValue> arglist = new ArrayList<>();
+		eval = (LuaValue) funcE.visit(this, arg);
+		for(int i=0; i<funcArgs.size(); i++)
+		{
+			arglist.add((LuaValue) funcArgs.get(i).visit(this, arg));
+		}
+		if(eval.getClass() == print.class)
+		{
+			for (LuaValue v: arglist) {
+				System.out.print(v);
+			}
+			return null;
+		}
+		if(eval.getClass() == println.class)
+		{
+			for (LuaValue v: arglist) {
+				System.out.println(v);
+			}
+			return null;
+		}
+		
+		throw new StaticSemanticException(null, "Unsupported function call!");
+		//throw new UnsupportedOperationException();
 	}
 
 	@Override
