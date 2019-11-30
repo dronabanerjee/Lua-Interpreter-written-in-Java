@@ -113,7 +113,7 @@ class ParserTest_Sample {
 	
 	@Test
 	void test1() throws Exception {
-		String input = " x=1 do x=2 end return x";
+		String input = "if 0 then x=3 end return x";
 		Block b = parseBlockAndShow(input);
 	}
 	

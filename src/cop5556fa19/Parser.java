@@ -345,17 +345,6 @@ private Exp getExp() throws Exception{
 							}
 							else
 							{
-								/*
-								consume();
-								if(isKind(KW_end))
-								{
-									fb = new FuncBody(ft, p, null);
-								}
-								else
-								{
-									throw new SyntaxException(t, "Function body is missing Keyword end or block is not null!");
-								}
-								*/
 								consume();
 								b = block();
 								fb = new FuncBody(ft, p, b);
@@ -369,17 +358,6 @@ private Exp getExp() throws Exception{
 						}
 						else if(isKind(RPAREN))
 						{
-							/*
-							consume();
-							if(isKind(KW_end))
-							{
-								fb = new FuncBody(ft, p, null);
-							}
-							else
-							{
-								throw new SyntaxException(t, "Function body is missing Keyword end or block is not null!");
-							}
-							*/
 							consume();
 							b = block();
 							fb = new FuncBody(ft, p, b);
@@ -402,18 +380,6 @@ private Exp getExp() throws Exception{
 									ftp = consume();
 									if(isKind(RPAREN))
 									{
-										/*
-										consume();
-										if(isKind(KW_end))
-										{
-											p = new ParList(ftp, nameList, false);
-											fb = new FuncBody(ft, p, null);
-										}
-										else
-										{
-											throw new SyntaxException(t, "Function body is missing Keyword end or block is not null!");
-										}
-										*/
 										consume();
 										b = block();
 										p = new ParList(ftp, nameList, false);
@@ -453,17 +419,6 @@ private Exp getExp() throws Exception{
 												throw new SyntaxException(t, "Function body is missing Keyword End!");
 											}
 											
-											/*
-											consume();
-											if(isKind(KW_end))
-											{
-												fb = new FuncBody(ft, p, null);
-											}
-											else
-											{
-												throw new SyntaxException(t, "Function body is missing Keyword end or block is not null!");
-											}
-											*/
 											break;
 										}
 										if(isKind(NAME))
@@ -655,8 +610,8 @@ private Exp getExp() throws Exception{
 				break;
 			
 			default:
-				//throw new UnsupportedOperationException("andExp");  //I find this is a more useful placeholder than returning null.
-				throw new SyntaxException(t, "Syntax error!");
+				//throw new UnsupportedOperationException("andExp");
+				throw new SyntaxException(t, "Syntax error! - "+t);
 		}
 		return e;
 		
@@ -817,18 +772,24 @@ private Exp getExp() throws Exception{
 		}
 		else if(isKind(KW_if))
 		{
+			//System.out.println("Debug1");
 			consume();
 			e = exp();
+			
 			ExpList.add(e);
+			
 			if(isKind(KW_then))
 			{
+				
 				consume();
-				b = block();
-				BlockList.add(b);
 				while(!isKind(KW_end) && !isKind(KW_else))
 				{
-					if(isKind(KW_elseif))
+					b = block();
+					BlockList.add(b);
+					//System.out.println(t);
+					while(isKind(KW_elseif))
 					{
+						consume();
 						e = exp();
 						ExpList.add(e);
 						if(isKind(KW_then))
@@ -851,11 +812,17 @@ private Exp getExp() throws Exception{
 					{
 						throw new SyntaxException(t, "Keyword End missing in If!");
 					}
+					if(isKind(KW_end))
+					{
+						consume();
+						return new StatIf(ft, ExpList, BlockList);
+					}
 				}
 				if(isKind(KW_else))
 				{
 					consume();
 					b = block();
+					BlockList.add(b);
 					if(isKind(KW_end))
 					{
 						consume();
