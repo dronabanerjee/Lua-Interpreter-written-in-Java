@@ -97,7 +97,6 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 	public Object visitExpInt(ExpInt expInt, Object arg) throws Exception {
 		LuaInt val = new LuaInt(expInt.v);
 		return val;
-		//throw new UnsupportedOperationException();
 	}
 
 	@Override
