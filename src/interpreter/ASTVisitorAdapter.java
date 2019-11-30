@@ -214,7 +214,44 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitUnExp(ExpUnary unExp, Object arg) throws Exception {
-		throw new UnsupportedOperationException();
+		
+		Exp exp1 = unExp.e;
+		Kind k = unExp.op;
+		
+		LuaValue exp1val = (LuaValue) exp1.visit(this, arg);
+		
+		if(k == OP_MINUS) 
+		{
+			return new LuaInt(-((LuaInt) exp1val).v);
+		}
+		else if(k == OP_HASH) 
+		{
+			if(exp1val.getClass() == LuaInt.class)
+			{
+				throw new TypeException("Type Exception error for Unary operator # ");
+			}
+		}
+		else if(k == KW_not) 
+		{
+			if(exp1.getClass() == ExpTrue.class || exp1val.getClass() == LuaInt.class || exp1val.getClass() == LuaString.class) 
+			{
+				return new LuaBoolean(false);
+			}
+			else if(exp1.getClass() == ExpFalse.class) 
+			{
+				return new LuaBoolean(true);
+			}
+			else 
+			{
+				throw new StaticSemanticException(null, "Error in unary expression!");
+			}
+		}
+		else if(k == BIT_XOR)
+		{
+			return new LuaInt((((LuaInt)exp1val).v*-1)-1);
+		}
+		throw new StaticSemanticException(null, "Failed to evaluate unary expression!");
+		//throw new UnsupportedOperationException();
 	}
 
 	@Override
