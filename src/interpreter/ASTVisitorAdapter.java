@@ -360,7 +360,18 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitStatRepeat(StatRepeat statRepeat, Object arg) throws Exception {
-		throw new UnsupportedOperationException();
+		
+		Exp repeatE = statRepeat.e;
+		Block repeatB = statRepeat.b;
+		List<LuaValue> bval = new ArrayList<>();
+		
+		bval = (List<LuaValue>) repeatB.visit(this, arg);
+		while(!((LuaBoolean) repeatE.visit(this, arg)).value)
+		{
+			bval = (List<LuaValue>) repeatB.visit(this, arg);
+		}
+		return bval;
+		//throw new UnsupportedOperationException();
 	}
 
 	@Override
