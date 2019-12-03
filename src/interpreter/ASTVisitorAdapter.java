@@ -55,6 +55,7 @@ import interpreter.built_ins.println;
 public abstract class ASTVisitorAdapter implements ASTVisitor {
 	
 	public static int returnFlag = 0;
+	public int breakFlag = 0;
 	
 	@SuppressWarnings("serial")
 	public static class StaticSemanticException extends Exception{
@@ -294,7 +295,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitBlock(Block block, Object arg) throws Exception {
-		System.out.println("In visit block");
+		//System.out.println("In visit block");
 		List<LuaValue> blockValue = new ArrayList<>();
 		List<Stat> s = block.stats;
 		if(s.size() == 0)
@@ -303,17 +304,21 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		}
 		for(int i=0; i<s.size(); i++)
 		{
-
-			if(s.get(i).getClass() == RetStat.class && returnFlag==0)
+			if(s.get(i).getClass() == StatBreak.class)
+			{
+				s.get(i).visit(this, arg);
+				break;
+			}
+			if(s.get(i).getClass() == RetStat.class && returnFlag==0 && breakFlag ==0)
 			{
 				returnFlag=1;
 				blockValue.addAll((List<LuaValue>) s.get(i).visit(this, arg));
 				break;
 			}
-			if(returnFlag==0 && s.get(i).getClass() != StatAssign.class)
+			if(returnFlag==0 && s.get(i).getClass() != StatAssign.class && breakFlag ==0)
 				blockValue.addAll((List<LuaValue>) s.get(i).visit(this, arg));
 				
-			if(s.get(i).getClass() == StatAssign.class)
+			if(s.get(i).getClass() == StatAssign.class && breakFlag ==0)
 				s.get(i).visit(this, arg);
 		}
 	    return blockValue;
@@ -321,12 +326,18 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitStatBreak(StatBreak statBreak, Object arg, Object arg2) {
-		throw new UnsupportedOperationException();
+		breakFlag =1;
+		List<LuaValue> noReturn = new ArrayList<>();
+		return noReturn;
+		//throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Object visitStatBreak(StatBreak statBreak, Object arg) throws Exception {
-		throw new UnsupportedOperationException();
+		breakFlag =1;
+		List<LuaValue> noReturn = new ArrayList<>();
+		return noReturn;
+		//throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -347,13 +358,16 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		Exp whileE = statWhile.e;
 		Block whileB = statWhile.b;
 		List<LuaValue> bval = new ArrayList<>();
-		//LuaValue eval = null;
-		//LuaBoolean lb = null;
 		
 		while(((LuaBoolean) whileE.visit(this, arg)).value)
 		{
 			bval = (List<LuaValue>) whileB.visit(this, arg);
+			if(breakFlag == 1)
+			{
+				break;
+			}
 		}
+		breakFlag = 0;
 		return bval;
 		//throw new UnsupportedOperationException();
 	}
@@ -368,10 +382,14 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		bval = (List<LuaValue>) repeatB.visit(this, arg);
 		while(!((LuaBoolean) repeatE.visit(this, arg)).value)
 		{
+			if(breakFlag == 1)
+			{
+				break;
+			}
 			bval = (List<LuaValue>) repeatB.visit(this, arg);
 		}
+		breakFlag=0;
 		return bval;
-		//throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -384,7 +402,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		LuaValue eval = null;
 		LuaBoolean lb = null;
 		int i;
-		System.out.println("In visit stat if");
+		//System.out.println("In visit stat if");
 		for(i=0; i<eList.size(); i++)
 		{
 			e = eList.get(i);
@@ -456,7 +474,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitRetStat(RetStat retStat, Object arg) throws Exception {
-		System.out.println("In visit ret stat");
+		//System.out.println("In visit ret stat");
 		List<LuaValue> retValue = new ArrayList<>();
 		List<Exp> ret = retStat.el;
 		if(ret.size() == 0)
@@ -474,7 +492,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitChunk(Chunk chunk, Object arg) throws Exception {
-		System.out.println("In visit chunk");
+		//System.out.println("In visit chunk");
 		List<LuaValue> chunkValue = new ArrayList<>();
 		Block b = chunk.block;
 		chunkValue = (List<LuaValue>) b.visit(this, arg);
@@ -524,7 +542,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 	@Override
 	public Object visitStatAssign(StatAssign statAssign, Object arg) throws Exception {
 		
-		System.out.println("In visit stat assign");
+		//System.out.println("In visit stat assign");
 		List<Exp> vList = statAssign.varList;
 		List<Exp> eList = statAssign.expList;
 		Exp v,e;
