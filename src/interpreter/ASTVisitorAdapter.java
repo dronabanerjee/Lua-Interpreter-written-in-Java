@@ -52,12 +52,15 @@ import cop5556fa19.AST.StatRepeat;
 import cop5556fa19.AST.StatWhile;
 import interpreter.built_ins.print;
 import interpreter.built_ins.println;
+import interpreter.StaticSemanticException;
 
 public abstract class ASTVisitorAdapter implements ASTVisitor {
 	
 	public int returnFlag = 0;
 	public int breakFlag = 0;
 	public int InLoop = 0;
+	public int gotoFlag =0;
+	public String gotoLabel="";
 	
 	@SuppressWarnings("serial")
 	public static class StaticSemanticException extends Exception{
@@ -323,7 +326,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitBlock(Block block, Object arg) throws Exception {
-		//System.out.println("In visit block");
+
 		List<LuaValue> blockValue = new ArrayList<>();
 		List<Stat> s = block.stats;
 		if(s.size() == 0)
@@ -332,7 +335,21 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		}
 		for(int i=0; i<s.size(); i++)
 		{
-			if(s.get(i).getClass() == StatBreak.class)
+			if(s.get(i).getClass() == StatGoto.class && gotoFlag==0)
+			{
+				gotoFlag=1;
+				StatGoto statGoto = (StatGoto) s.get(i);
+				gotoLabel = statGoto.name.name;
+			}
+			if(s.get(i).getClass() == StatLabel.class && gotoFlag==1)
+			{
+				StatLabel statLabel = (StatLabel) s.get(i);
+				if(gotoLabel.matches(statLabel.label.name)) 
+				{
+					gotoFlag = 0;
+				}
+			}
+			if(s.get(i).getClass() == StatBreak.class && gotoFlag==0)
 			{
 				if(InLoop == 1)
 				{
@@ -340,16 +357,16 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 				}
 				break;
 			}
-			if(s.get(i).getClass() == RetStat.class && returnFlag==0 && breakFlag ==0)
+			if(s.get(i).getClass() == RetStat.class && returnFlag==0 && breakFlag ==0 && gotoFlag==0)
 			{
 				returnFlag=1;
 				blockValue.addAll((List<LuaValue>) s.get(i).visit(this, arg));
 				break;
 			}
-			if(returnFlag==0 && s.get(i).getClass() != StatAssign.class && breakFlag ==0)
+			if(returnFlag==0 && s.get(i).getClass() != StatAssign.class && breakFlag ==0 && gotoFlag==0 && s.get(i).getClass() != StatGoto.class && s.get(i).getClass() != StatLabel.class)
 				blockValue.addAll((List<LuaValue>) s.get(i).visit(this, arg));
 				
-			if(s.get(i).getClass() == StatAssign.class && breakFlag ==0)
+			if(s.get(i).getClass() == StatAssign.class && breakFlag ==0 && gotoFlag==0)
 				s.get(i).visit(this, arg);
 		}
 	    return blockValue;
@@ -527,8 +544,13 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 	public Object visitChunk(Chunk chunk, Object arg) throws Exception {
 		//System.out.println("In visit chunk");
 		List<LuaValue> chunkValue = new ArrayList<>();
+		Token temp = null;
 		Block b = chunk.block;
 		chunkValue = (List<LuaValue>) b.visit(this, arg);
+		if(gotoFlag==1)
+		{
+			throw new interpreter.StaticSemanticException(temp, "Did not find a matching label for Goto statement!");
+		}
 		if(chunkValue == null)
 		{		
 			return null;

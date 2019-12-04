@@ -575,6 +575,22 @@ private Exp getExp() throws Exception{
 								throw new SyntaxException(t, "Field seperator missing!");
 							}
 						}
+						else if(isKind(LPAREN))
+						{
+							fe = new ExpName(temp2);
+							List<Exp> args = new ArrayList<>();
+							Exp e1 = null;
+							args = getArgs();
+							e1 = new ExpFunctionCall(temp_token, fe, args);
+							
+							fik = new FieldImplicitKey(t, e1);
+							fields.add(fik);
+							if(isKind(COMMA) || isKind(SEMI))
+							{
+								consume();
+							}
+							
+						}
 						else if(isKind(RCURLY) || isKind(COMMA) || isKind(SEMI))
 						{
 							fe = new ExpName(temp2);
