@@ -575,15 +575,19 @@ private Exp getExp() throws Exception{
 								throw new SyntaxException(t, "Field seperator missing!");
 							}
 						}
-						else if(isKind(RCURLY))
+						else if(isKind(RCURLY) || isKind(COMMA) || isKind(SEMI))
 						{
 							fe = new ExpName(temp2);
 							fik = new FieldImplicitKey(t, fe);
 							fields.add(fik);
+							if(isKind(COMMA) || isKind(SEMI))
+							{
+								consume();
+							}
 						}
 						else
 						{
-							throw new SyntaxException(t, "Invalid FieldNameKey, = missing!");
+							throw new SyntaxException(t, "Invalid FieldNameKey!!!!!!");
 						}
 						
 					}
@@ -1331,7 +1335,7 @@ private Exp getExp() throws Exception{
 			{
 				consume();
 				e2 = new ExpTableLookup(ft, e, e1);
-				consume();
+				//consume();
 				return prefixExpTail(e2);
 			}
 			else

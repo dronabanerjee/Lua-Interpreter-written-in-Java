@@ -57,6 +57,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 	
 	public int returnFlag = 0;
 	public int breakFlag = 0;
+	public int InLoop = 0;
 	
 	@SuppressWarnings("serial")
 	public static class StaticSemanticException extends Exception{
@@ -333,7 +334,10 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		{
 			if(s.get(i).getClass() == StatBreak.class)
 			{
-				s.get(i).visit(this, arg);
+				if(InLoop == 1)
+				{
+					s.get(i).visit(this, arg);
+				}
 				break;
 			}
 			if(s.get(i).getClass() == RetStat.class && returnFlag==0 && breakFlag ==0)
@@ -388,6 +392,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		
 		while(((LuaBoolean) whileE.visit(this, arg)).value)
 		{
+			InLoop=1;
 			bval = (List<LuaValue>) whileB.visit(this, arg);
 			if(breakFlag == 1)
 			{
@@ -395,6 +400,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 			}
 		}
 		breakFlag = 0;
+		InLoop=0;
 		return bval;
 		//throw new UnsupportedOperationException();
 	}
@@ -581,7 +587,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		{
 			v = vList.get(i);
 			e = eList.get(i);
-			
+			//System.out.println(e);
 			eval = (LuaValue) e.visit(this, arg);
 			if(v instanceof ExpName)
 			{
@@ -589,13 +595,25 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 			    key = new LuaString(v1.name);
 			    ((LuaTable)arg).put(key, eval);
 			}
+			else if(v instanceof ExpTableLookup) 
+			{
+				ExpTableLookup tlu = (ExpTableLookup) v;
+				ExpName t = (ExpName) tlu.table;
+				Exp k = tlu.key;
+				LuaTable tab = (LuaTable) ((LuaTable)arg).get(t.name);
+				LuaValue tabKey = (LuaValue) k.visit(this, arg);
+				LuaValue tabval = (LuaValue) e.visit(this, arg);
+				tab.put(tabKey, tabval);
+			}
 		}
 	    return null;
 	}
 
 	@Override
 	public Object visitExpTableLookup(ExpTableLookup expTableLookup, Object arg) throws Exception {
-		throw new UnsupportedOperationException();
+		
+		return new LuaTable();
+		//throw new UnsupportedOperationException();
 	}
 
 	@Override
