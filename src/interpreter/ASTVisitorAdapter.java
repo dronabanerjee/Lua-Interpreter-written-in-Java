@@ -25,6 +25,7 @@ import cop5556fa19.AST.ExpTableLookup;
 import cop5556fa19.AST.ExpTrue;
 import cop5556fa19.AST.ExpUnary;
 import cop5556fa19.AST.ExpVarArgs;
+import cop5556fa19.AST.Field;
 import cop5556fa19.AST.FieldExpKey;
 import cop5556fa19.AST.FieldImplicitKey;
 import cop5556fa19.AST.FieldList;
@@ -54,7 +55,7 @@ import interpreter.built_ins.println;
 
 public abstract class ASTVisitorAdapter implements ASTVisitor {
 	
-	public static int returnFlag = 0;
+	public int returnFlag = 0;
 	public int breakFlag = 0;
 	
 	@SuppressWarnings("serial")
@@ -270,7 +271,33 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitExpTable(ExpTable expTableConstr, Object arg) throws Exception {
-		throw new UnsupportedOperationException();
+		List<Field> f= expTableConstr.fields;
+		LuaTable table = new LuaTable();
+		//List<LuaValue> tv = new ArrayList<>();
+		//tv.add(table);
+		for(int i=0; i<f.size(); i++)
+		{
+			if(f.get(i).getClass() == FieldImplicitKey.class) {
+				FieldImplicitKey fik = (FieldImplicitKey) f.get(i);
+				
+				table.putImplicit((LuaValue)fik.visit(this, arg));
+			}
+			else if(f.get(i).getClass() == FieldNameKey.class) {
+				FieldNameKey fnk = (FieldNameKey) f.get(i);
+				Name k = fnk.name;
+				Exp v = fnk.exp;
+				table.put(k.name, (LuaValue) v.visit(this, arg));
+			}
+			else if(f.get(i).getClass() == FieldExpKey.class) {
+				FieldExpKey fek = (FieldExpKey) f.get(i);
+				Exp k = fek.key;
+				Exp v = fek.value;
+				table.put((LuaValue) k.visit(this, arg), (LuaValue) v.visit(this, arg));
+			}
+		}
+		
+		return table;
+		//throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -515,7 +542,9 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 	
 	@Override
 	public Object visitFieldImplicitKey(FieldImplicitKey fieldImplicitKey, Object arg) throws Exception {
-		throw new UnsupportedOperationException();
+		Exp e = fieldImplicitKey.exp;
+		LuaValue eval = (LuaValue) e.visit(this, arg);
+		return eval;
 	}
 
 	@Override
@@ -606,6 +635,7 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 
 	@Override
 	public Object visitFieldList(FieldList fieldList, Object arg) {
+		
 		throw new UnsupportedOperationException();
 	}
 
