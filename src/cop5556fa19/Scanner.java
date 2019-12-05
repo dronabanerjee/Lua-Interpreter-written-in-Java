@@ -116,6 +116,17 @@ public class Scanner {
 		    	    	
 		    	    	}break;
 		    	    	
+		    	    	case '\r': {
+		    	    		
+		    	    		CurrLine++;
+		    	    		getChar();
+		    	    		if ((char)ch == '\n')
+		    	    		{
+		    	    			getChar();
+		    	    		}
+		    	    	
+		    	    	}break;
+		    	    	
 		    	    	case ' ': {
 		    	    		
 		    	    		getChar();

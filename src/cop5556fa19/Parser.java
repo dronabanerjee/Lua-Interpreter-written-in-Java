@@ -491,7 +491,7 @@ private Exp getExp() throws Exception{
 				{
 					throw new SyntaxException(t, "Missing )!");
 				}
-				if(e==null)
+				if(tempExp==null)
 				{
 					throw new SyntaxException(t, "Invalid Sysntax. Expression between paranthesis is null");
 				}

@@ -52,7 +52,9 @@ import cop5556fa19.AST.StatRepeat;
 import cop5556fa19.AST.StatWhile;
 import interpreter.built_ins.print;
 import interpreter.built_ins.println;
+import interpreter.built_ins.toNumber;
 import interpreter.StaticSemanticException;
+import interpreter.ASTVisitorAdapter.TypeException;
 
 public abstract class ASTVisitorAdapter implements ASTVisitor {
 	
@@ -99,10 +101,8 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		Exp exp2 = expBin.e1;
 		Kind k = expBin.op;
 		
-		//ExpBinary eb = (ExpBinary) e;
 		LuaValue exp1val = (LuaValue) exp1.visit(this, arg);
 		LuaValue exp2val = (LuaValue) exp2.visit(this, arg);
-		//Kind op = eb.op;
 		
 		if(exp1val.getClass() == LuaInt.class && exp2val.getClass() == LuaInt.class) 
 		{
@@ -179,6 +179,18 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 			else if(k == BIT_SHIFTR) 
 			{
 				return new LuaInt(exp1int.v >> exp2int.v);
+			}
+		}
+		else if(exp1val.getClass() == LuaInt.class && exp2val.getClass() == LuaString.class)
+		{
+			if(k == DOTDOT) 
+			{
+				LuaInt n = (LuaInt)exp1val;
+				int nval = n.v;
+				
+				LuaString exp1String = new LuaString(Integer.toString(nval));
+				LuaString exp2String = (LuaString) exp2val;
+				return new LuaString(exp1String.value + exp2String.value);
 			}
 		}
 		else if(exp1val.getClass() == LuaString.class && exp2val.getClass() == LuaString.class) 
@@ -283,8 +295,9 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 		{
 			if(f.get(i).getClass() == FieldImplicitKey.class) {
 				FieldImplicitKey fik = (FieldImplicitKey) f.get(i);
-				
-				table.putImplicit((LuaValue)fik.visit(this, arg));
+				LuaValue eval = (LuaValue)fik.visit(this, arg);
+				if(eval != null)
+					table.putImplicit(eval);
 			}
 			else if(f.get(i).getClass() == FieldNameKey.class) {
 				FieldNameKey fnk = (FieldNameKey) f.get(i);
@@ -662,6 +675,22 @@ public abstract class ASTVisitorAdapter implements ASTVisitor {
 				System.out.println(v);
 			}
 			return null;
+		}
+		if(eval.getClass() == toNumber.class)
+		{
+			LuaValue a = arglist.get(0);
+			if (a instanceof LuaInt) {
+				return a;
+			}
+			else if (a instanceof LuaString) {
+				int num = Integer.parseInt(((LuaString)a).value);
+				return new LuaInt(num);
+			}
+			else
+			{
+				throw new TypeException("Cannot convert " + a + "to a number");
+			}
+			
 		}
 		
 		throw new StaticSemanticException(null, "Unsupported function call!");
